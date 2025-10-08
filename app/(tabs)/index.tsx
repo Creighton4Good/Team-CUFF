@@ -1,3 +1,4 @@
+/*
 import { Image } from 'expo-image';
 import { Platform, StyleSheet } from 'react-native';
 
@@ -94,5 +95,58 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     position: 'absolute',
+  },
+});
+*/
+
+import { useClerk, useUser } from "@clerk/clerk-expo";
+import React from "react";
+import { Button, StyleSheet, Text, View } from "react-native";
+
+export default function HomeScreen() {
+  // `useUser` gives us all the details about the logged-in user
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome Back!</Text>
+      <Text style={styles.userInfo}>
+        Hello, {user?.firstName || "User"}!
+      </Text>
+      <Text style={styles.userEmail}>
+        Your email is: {user?.primaryEmailAddress?.emailAddress}
+      </Text>
+      <View style={styles.separator} />
+      <Button title="Sign Out" onPress={() => signOut()} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  userInfo: {
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  userEmail: {
+    fontSize: 16,
+    color: "#666",
+  },
+  separator: {
+    marginVertical: 30,
+    height: 1,
+    width: "80%",
+    backgroundColor: "#eee",
   },
 });

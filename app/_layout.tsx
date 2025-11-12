@@ -1,6 +1,6 @@
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
@@ -49,7 +49,7 @@ const MyTheme = {
     border: "#005CA9",
     notification: "#005CA9",
   }
-};
+}; 
 
 // These are just some nice-to-haves from Expo Router
 export { ErrorBoundary } from "expo-router";
@@ -72,14 +72,19 @@ function InitialLayout() {
     }
   }, [isLoaded]);
 
+  const pathname = usePathname();
+
   // This is the core logic that handles our routing!
   useEffect(() => {
-    if (!isLoaded) return; // Wait until Clerk is ready
+    if (!isLoaded || !pathname) return; // Wait until Clerk is ready
 
-    const publicAuthRoutes = ["sign-in", "sign-up", "change-password"]
-    const first = segments[0] as string | undefined;
-    const inTabsGroup = first === "(tabs)";
-    const isOnPublicAuthRoute = first && publicAuthRoutes.includes(first);
+    const isOnPublicAuthRoute = [
+      "/sign-in",
+      "/sign-up",
+      "/forgot-password",
+    ].includes(pathname);
+
+    const inTabsGroup = pathname.startsWith("/(tabs)");
 
     if (isSignedIn && !inTabsGroup) {
       // If the user is signed in and not in the main app area,
@@ -111,6 +116,7 @@ function InitialLayout() {
       }}
     > 
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="sign-in" options={{ headerShown: false }} />
       <Stack.Screen name="sign-up" options={{ headerShown: false }} />
       <Stack.Screen name="forgot-password" options={{ headerShown: false }} />

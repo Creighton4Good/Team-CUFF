@@ -2,12 +2,12 @@ import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    Button,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Button,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 export default function SignInScreen() {
@@ -85,7 +85,7 @@ export default function SignInScreen() {
         onPress={onSignInPress}
         disabled={isLoading}
       />
-      <Link href="/change-password" asChild>
+      <Link href="/(auth)/forgot-password" asChild>
         <Pressable style={styles.link} disabled={isLoading}>
           <Text style={styles.linkText}>Forgot Password?</Text>
         </Pressable>

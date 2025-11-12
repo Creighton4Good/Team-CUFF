@@ -16,8 +16,6 @@ import {
   View
 } from "react-native";
 
-type Diet = "any" | "veg" | "vegan" | "gluten_free" | "dairy_free";
-const DIET_OPTIONS: Diet[] = ["veg", "vegan", "gluten_free", "dairy_free"]
 type Notif = "push" | "email";
 type Stage = "form" | "confirm" | "verify";
 
@@ -32,14 +30,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
 
   // State for preferences
-  const [diets, setDiets] = useState<Diet[]>([]);
   const [notif, setNotif] = useState<Notif>("push");
-
-  const toggleDiet = (value: Diet) => {
-    setDiets(prev =>
-      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
-    );
-  };
 
   // State for the verification flow
   const [stage, setStage] = useState<Stage>("form");
@@ -96,7 +87,7 @@ export default function SignUpScreen() {
         router.replace("/(tabs)");
         await AsyncStorage.setItem(
           "@prefs",
-          JSON.stringify({ diets, notif })
+          JSON.stringify({ notif })
         );
       } else {
         setError("Verification incomplete. Please try again.");
@@ -172,26 +163,7 @@ export default function SignUpScreen() {
                   onChangeText={setPassword}
                   style={styles.input}
                   editable={!isLoading} />
-                <Text style={styles.sectionLabel}>Diet Preferences</Text>
-                <View style={styles.chipRow}>
-                  {DIET_OPTIONS.map(opt => {
-                    const selected = diets.includes(opt);
-                    return (
-                      <Pressable
-                        key={opt}
-                        onPress={() => toggleDiet(opt)}
-                        accessibilityRole="checkbox"
-                        accessibilityState={{ checked: selected }}
-                        style={[styles.chip, selected && styles.chipSelected]}
-                      >
-                        <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                          {opt.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase())}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
+                
                 <Text style={styles.sectionLabel}>Notification Preferences</Text>
                 <Picker selectedValue={notif} onValueChange={setNotif} style={styles.input}>
                   <Picker.Item label="Push" value="push" />
@@ -217,7 +189,6 @@ export default function SignUpScreen() {
                 <Text style={styles.confirmTitle}>Confirm your details</Text>
                 <Text>Name: {firstName} {lastName}</Text>
                 <Text>Email: {emailAddress}</Text>
-                <Text>Diet: {diets.length === 0 ? "Any" : diets.join(", ").replaceAll("_", " ")}</Text>
                 <Text>Notifications: {notif}</Text>
 
                 <View style={{ height: 12 }} />

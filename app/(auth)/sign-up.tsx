@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -112,7 +111,6 @@ export default function SignUpScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -232,7 +230,6 @@ export default function SignUpScreen() {
       </View>
     </ScrollView>
   </KeyboardAvoidingView>
-  </SafeAreaView>
   );
 }
 

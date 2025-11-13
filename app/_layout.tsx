@@ -31,11 +31,12 @@ const tokenCache = {
   },
 };
 
-// Let's grab our Clerk Publishable Key from the .env file
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 if (!CLERK_PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key. Please add it to your .env file.");
+  throw new Error(
+    "Missing Clerk Publishable Key. Did you forget to set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your env?"
+  );
 }
 
 const MyTheme = {
@@ -142,7 +143,7 @@ export default function RootLayout() {
   const scheme = useColorScheme();
   return (
     <ClerkProvider
-      publishableKey={CLERK_PUBLISHABLE_KEY!}
+      publishableKey={CLERK_PUBLISHABLE_KEY}
       tokenCache={tokenCache}
     >
       <ThemeProvider value={scheme === "dark" ? DarkTheme : MyTheme}>

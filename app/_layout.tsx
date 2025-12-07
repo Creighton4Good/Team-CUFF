@@ -77,25 +77,27 @@ function InitialLayout() {
 
   // This is the core logic that handles our routing!
   useEffect(() => {
-    if (!isLoaded || !pathname) return; // Wait until Clerk is ready
+    if (!isLoaded || !pathname) return;
 
-    const isOnPublicAuthRoute = [
-      "/sign-in",
-      "/sign-up",
-      "/forgot-password",
-    ].includes(pathname);
+    // segments is like ["(tabs)", "admin"] or ["(auth)", "sign-in"]
+    const rootSegment = segments[0] as string | undefined;
 
-    const inTabsGroup = pathname.startsWith("/(tabs)");
+    const inTabsGroup = rootSegment === "(tabs)";
+    const inAuthGroup = rootSegment === "(auth)";
+
+    const authScreen = segments[1] as string | undefined;
+    const isOnPublicAuthRoute =
+      inAuthGroup &&
+      ["sign-in", "sign-up", "forgot-password"].includes(authScreen ?? "");
 
     if (isSignedIn && !inTabsGroup) {
-      // If the user is signed in and not in the main app area,
-      // send them to the home screen.
+      // Signed in but not in the main app area → send to tabs
       router.replace("/(tabs)");
     } else if (!isSignedIn && !isOnPublicAuthRoute) {
-      // If the user is not signed in, send them to the sign-in screen.
+      // Not signed in → force to sign-in
       router.replace("/sign-in");
     }
-  }, [isLoaded, isSignedIn, segments, router]);
+  }, [isLoaded, isSignedIn, segments, pathname, router]);
 
   // While Clerk is loading, we'll show a simple loading spinner
   if (!isLoaded) {
@@ -118,9 +120,7 @@ function InitialLayout() {
     > 
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-      <Stack.Screen name="sign-up" options={{ headerShown: false }} />
-      <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
+      <Stack.Screen name="modal" options={{ presentation: "modal" }}/>
       <Stack.Screen
         name="change-password"
         options={{
@@ -146,7 +146,7 @@ export default function RootLayout() {
       publishableKey={CLERK_PUBLISHABLE_KEY}
       tokenCache={tokenCache}
     >
-      <ThemeProvider value={scheme === "dark" ? DarkTheme : MyTheme}>
+      <ThemeProvider value={MyTheme}>
         <InitialLayout />
       </ThemeProvider>
     </ClerkProvider>

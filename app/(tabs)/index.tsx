@@ -1,38 +1,41 @@
 import { useClerk, useUser } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Button, FlatList, StyleSheet, Text, View } from "react-native";
-
-const API_BASE = "http://localhost:8080";
-
-type Event = {
-  id: number;
-  title: string;
-  whenTime: string;
-  wherePlace: string;
-  description: string;
-};
+import { Event, fetchEvents } from "@/lib/api";
 
 export default function HomeScreen() {
   const { user } = useUser();
-  const router = useRouter();
   const { signOut } = useClerk();
-  const isAdmin = user?.publicMetadata?.role === "admin";
-
   const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await fetch(`${API_BASE}/events`);
-        const data = await res.json();
-        setEvents(data);
-      } catch (e) {
-        console.error("Failed to fetch events", e);
+        const data = await fetchEvents();
+        setEvents(data.filter((e) => e.status === "active"));
+      } catch (err: any) {
+        console.error("Error fetching events:", err);
+        setError(err.message ?? "Failed to load events");
+      } finally {
+        setLoading(false);
       }
     };
     load();
   }, []);
+
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return "";
+    try {
+      const date = new Date(value);
+      return date.toLocaleString();
+    } catch {
+      return value;
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -40,32 +43,53 @@ export default function HomeScreen() {
       <Text style={styles.userInfo}>
         Hello, {user?.firstName || "User"}!
       </Text>
-
-      {isAdmin && (
-        <Button
-          title="Post an Event"
-          onPress={() => router.push("/(tabs)/admin")}
-        />
-      )}
+      <Text style={styles.userEmail}>
+        Your email is: {user?.primaryEmailAddress?.emailAddress}
+      </Text>
 
       <View style={styles.separator} />
 
-      <Text style={{ fontSize: 18, marginBottom: 8 }}>Available Food Events</Text>
-      <FlatList
-        data={events}
-        keyExtractor={e => e.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text>{item.whenTime}</Text>
-            <Text>{item.wherePlace}</Text>
-            {!!item.description && (
-              <Text style={{ marginTop: 4 }}>{item.description}</Text>
-            )}
-          </View>
-        )}
-        ListEmptyComponent={<Text>No events yet.</Text>}
-      />
+      <Text style={styles.sectionTitle}>Available Food Events</Text>
+
+      {loading ? (
+        <Text>Loading events...</Text>
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : events.length === 0 ? (
+        <Text style={styles.emptyText}>No events yet.</Text>
+      ) : (
+        <FlatList
+          data={events}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={{ paddingVertical: 8 }}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              
+              {!!item.location && <Text>{item.location}</Text>}
+
+              {!!item.description && (
+                <Text style={{ marginTop: 4 }}>{item.description}</Text>
+              )}
+
+              {!!item.dietarySpecification && (
+                <Text style={{ marginTop: 4 }}>
+                  Dietary: {item.dietarySpecification}
+                </Text>
+              )}
+
+              {(item.availableFrom || item.availableUntil) && (
+                <Text style={{ marginTop: 4, fontStyle: "italic" }}>
+                  {item.availableFrom &&
+                    `From: ${formatDateTime(item.availableFrom)} `}
+                  {item.availableUntil &&
+                    `To: ${formatDateTime(item.availableUntil)}`}
+                </Text>
+              )}
+            </View>
+          )}
+        />
+      )}
 
       <View style={styles.separator} />
       <Button title="Sign Out" onPress={() => signOut()} />
@@ -75,20 +99,25 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
-  userInfo: { fontSize: 18, marginBottom: 10 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 12 },
+  userInfo: { fontSize: 18, marginBottom: 4 },
+  userEmail: { fontSize: 16, color: "#666" },
   separator: {
-    marginVertical: 20,
+    marginVertical: 16,
     height: 1,
     width: "100%",
     backgroundColor: "#eee",
   },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 8 },
+  emptyText: { fontSize: 14, color: "#888" },
+  errorText: { fontSize: 14, color: "red", marginBottom: 8 },
   card: {
     borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 12,
+    borderColor: "#005CA9",
     borderRadius: 8,
+    padding: 12,
     marginBottom: 10,
+    backgroundColor: "#E9F2FB",
   },
-  cardTitle: { fontSize: 16, fontWeight: "600", marginBottom: 4 },
+  cardTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 4 },
 });

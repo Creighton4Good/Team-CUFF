@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { createEvent, NewEvent } from "@/lib/api";
+import { createEvent } from "@/lib/api";
 import { useUser } from "@clerk/clerk-expo";
 
 export default function AdminPost() {
@@ -24,45 +24,37 @@ export default function AdminPost() {
   console.log("AdminPost screen rendered");
 
   const handleSubmit = async () => {
-    console.log("Post Food Event button pressed");
     if (!title.trim()) {
-      Alert.alert("Missing title", "Please enter a title for the post.");
-      return;
-    }
-
-    if (!location.trim()) {
-    Alert.alert("Missing location", "Please enter a location for the post.");
+    Alert.alert("Missing title", "Please enter a title for the post.");
     return;
     }
 
-    if (!availableFrom.trim() || !availableUntil.trim()) {
-      Alert.alert(
-        "Missing availability",
-        "Please enter both start and end times."
-      );
-      return;
-    }
-
-   // TEMP: hard-coded user id until we wire real users
-    const userId = 1;
-
-    const payload: NewEvent = {
-      userId,
-      title: title.trim(),
-      location: location.trim(),                    // required
-      description: description.trim() || "",        // optional
-      dietarySpecification: dietarySpecification.trim() || "",
-      availableFrom: availableFrom.trim(),          // required ISO string
-      availableUntil: availableUntil.trim(),        // required ISO string
-      imageUrl: "",                                 // optional
-      status: "active",
-    };
+    const userId = 1; // still hard-coded for now
 
     setSubmitting(true);
     try {
-      await createEvent(payload);
+      const availableFromIso = toIsoOrUndefined(availableFrom);
+      const availableUntilIso = toIsoOrUndefined(availableUntil);
+
+      if (!availableFromIso || !availableUntilIso) {
+        Alert.alert(
+          "Missing time",
+          "Please enter both start and end times in the format 2025-12-07T18:00:00."
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      await createEvent({
+        title: title.trim(),
+        location: location.trim(),
+        description: description.trim(),
+        dietarySpecification: dietarySpecification.trim(),
+        availableFrom: availableFromIso,
+        availableUntil: availableUntilIso,
+      });
+
       Alert.alert("Success", "Post created successfully!");
-      
       setTitle("");
       setLocation("");
       setDescription("");
@@ -78,6 +70,26 @@ export default function AdminPost() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const toIsoOrUndefined = (value: string): string | undefined => {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  // If the user already typed something ISO-like, just send it through.
+  if (trimmed.includes("T")) {
+    return trimmed;
+  }
+
+  // Try to parse more casual formats like "12/7/2025 18:00"
+  const parsed = new Date(trimmed);
+  if (isNaN(parsed.getTime())) {
+    throw new Error(
+      'Could not understand date/time. Please use format like "2025-12-07T18:00:00".'
+    );
+  }
+
+  return parsed.toISOString().slice(0, 19); // "YYYY-MM-DDTHH:mm:ss"
   };
 
   return (
@@ -118,14 +130,14 @@ export default function AdminPost() {
       />
       <TextInput
         style={styles.input}
-        placeholder='Available from (e.g. 12/6/25 2:30PM)'
+        placeholder='Available from (e.g. 2025-12-07T18:00:00)'
         placeholderTextColor="#999"
         value={availableFrom}
         onChangeText={setAvailableFrom}
       />
       <TextInput
         style={styles.input}
-        placeholder='Available until (e.g. 12/6/25 4:00PM)'
+        placeholder='Available until (e.g. 2025-12-07T20:00:00)'
         placeholderTextColor="#999"
         value={availableUntil}
         onChangeText={setAvailableUntil}

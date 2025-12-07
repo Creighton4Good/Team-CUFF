@@ -2,15 +2,19 @@ import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Button, FlatList, StyleSheet, Text, View } from "react-native";
+import { fetchEvents } from "../../lib/api";
 
 const API_BASE = "http://localhost:8080";
 
 type Event = {
   id: number;
   title: string;
-  whenTime: string;
-  wherePlace: string;
+  location: string;
   description: string;
+  dietarySpecification?: string;
+  availableFrom: string;
+  availableUntil: string;
+  status: string;
 };
 
 export default function HomeScreen() {
@@ -24,8 +28,8 @@ export default function HomeScreen() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`${API_BASE}/events`);
-        const data = await res.json();
+        const data = await fetchEvents();
+        console.log("Events from API (dashboard):", data);
         setEvents(data);
       } catch (e) {
         console.error("Failed to fetch events", e);
@@ -33,6 +37,18 @@ export default function HomeScreen() {
     };
     load();
   }, []);
+
+  const visibleEvents = events.filter((e) => {
+    const now = new Date();
+    const until = new Date(e.availableUntil);
+    return e.status?.toLowerCase() === "active" && until >= now;
+  });
+
+  const formatRange = (from: string, until: string) => {
+    const start = new Date(from);
+    const end = new Date(until);
+    return `${start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} – ${end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+  };
 
   return (
     <View style={styles.container}>
@@ -52,15 +68,20 @@ export default function HomeScreen() {
 
       <Text style={{ fontSize: 18, marginBottom: 8 }}>Available Food Events</Text>
       <FlatList
-        data={events}
-        keyExtractor={e => e.id.toString()}
+        data={visibleEvents}
+        keyExtractor={(e) => e.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text>{item.whenTime}</Text>
-            <Text>{item.wherePlace}</Text>
+            <Text>{item.location}</Text>
+            <Text>{formatRange(item.availableFrom, item.availableUntil)}</Text>
             {!!item.description && (
               <Text style={{ marginTop: 4 }}>{item.description}</Text>
+            )}
+            {!!item.dietarySpecification && (
+              <Text style={{ marginTop: 4 }}>
+                Dietary: {item.dietarySpecification}
+              </Text>
             )}
           </View>
         )}

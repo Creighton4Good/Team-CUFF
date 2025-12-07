@@ -8,7 +8,7 @@ export type EventPayload = {
 };
 
 // Base is just host + port
-const API_BASE_URL = "http://192.168.1.223:8080";
+const API_BASE_URL = "http://10.98.20.160:8080";
 
 // GET /api/posts
 export async function fetchEvents() {

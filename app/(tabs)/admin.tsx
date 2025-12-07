@@ -123,7 +123,7 @@ export default function AdminPost() {
       />
       <TextInput
         style={styles.input}
-        placeholder="Dietary specification (e.g., vegan, gluten-free)"
+        placeholder="Dietary specification (e.g., 'vegan option, vegetarian, gluten-free, contains nutes')"
         placeholderTextColor="#999"
         value={dietarySpecification}
         onChangeText={setDietarySpecification}

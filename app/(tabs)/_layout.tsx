@@ -29,6 +29,12 @@ export default function TabsLayout() {
           tabBarLabel: "Post Event", 
         }}
       />
+      <Tabs.Screen
+        name="preferences"
+        options={{
+        title: "Preferences",
+        }}
+      />
     </Tabs>
   );
 }

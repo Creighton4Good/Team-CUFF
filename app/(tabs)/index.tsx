@@ -1,9 +1,10 @@
-import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useClerk, useUser as useClerkUser} from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Button, FlatList, StyleSheet, Text, View } from "react-native";
 import { fetchEvents, deleteEvent } from "../../lib/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUser as useAppUser } from "../../hooks/UserContext";
 
 const PREFS_KEY = "cuff_preferences";
 
@@ -27,10 +28,11 @@ type Preferences = {
 }
 
 export default function HomeScreen() {
-  const { user } = useUser();
+  const { user: clerkUser } = useClerkUser();
   const router = useRouter();
   const { signOut } = useClerk();
-  const isAdmin = user?.publicMetadata?.role === "admin";
+  
+  const {isAdmin } = useAppUser();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [prefs, setPrefs] = useState<Preferences>({
@@ -163,7 +165,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back!</Text>
       <Text style={styles.userInfo}>
-        Hello, {user?.firstName || "User"}!
+        Hello, {clerkUser?.firstName || "User"}!
       </Text>
 
       {isAdmin && (

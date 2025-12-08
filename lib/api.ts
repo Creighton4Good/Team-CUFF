@@ -62,3 +62,15 @@ export async function deleteEvent(id: number): Promise<void> {
         throw new Error("Failed to delete event");
     }
 }
+
+export async function fetchUserById(id: number) {
+  const res = await fetch(`${API_BASE_URL}/api/users/${id}`);
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Failed to fetch user", res.status, text);
+    throw new Error("Failed to fetch user");
+  }
+
+  return res.json();
+}

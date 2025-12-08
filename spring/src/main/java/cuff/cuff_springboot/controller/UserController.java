@@ -8,6 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "*")
 public class UserController {
 
     @Autowired
@@ -32,4 +33,11 @@ public class UserController {
     public User getUserById(@PathVariable Integer id) { // get user by ID
         return userService.getUserById(id);
     }
+    @PutMapping("/preferences/{userId}")
+        public User updatePreferences(
+        @PathVariable Integer userId,
+        @RequestBody User prefs
+) {
+    return userService.updatePreferences(userId, prefs);
+}
 }

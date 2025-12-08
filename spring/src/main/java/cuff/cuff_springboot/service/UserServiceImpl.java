@@ -31,4 +31,12 @@ public class UserServiceImpl implements UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+    @Override
+    public User updatePreferences(Integer userId, User prefs) {
+         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+         user.setNotificationType(prefs.getNotificationType());
+         user.setDietaryPreferences(prefs.getDietaryPreferences());
+
+    return userRepository.save(user);
+}
 }

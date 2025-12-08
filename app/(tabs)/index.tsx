@@ -1,7 +1,7 @@
 import { useClerk, useUser as useClerkUser} from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Button, FlatList, StyleSheet, Text, View } from "react-native";
+import { Button, FlatList, StyleSheet, Text, View, Image } from "react-native";
 import { fetchEvents, deleteEvent } from "../../lib/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUser as useAppUser } from "../../hooks/UserContext";
@@ -17,6 +17,7 @@ type Event = {
   availableFrom: string;
   availableUntil: string;
   status: string;
+  imageUrl?: string;
 };
 
 type Preferences = {
@@ -193,6 +194,13 @@ export default function HomeScreen() {
           const badges = getHighlightBadges(item);
           return (
             <View style={styles.card}>
+              {item.imageUrl ? (
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.cardImage}
+                  resizeMode="cover"
+                />
+              ) : null}
               <Text style={styles.cardTitle}>{item.title}</Text>
               <Text>{item.location}</Text>
               <Text>{formatRange(item.availableFrom, item.availableUntil)}</Text>
@@ -253,6 +261,13 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 10,
+    backgroundColor: "#6CADDE",
+  },
+  cardImage: {
+    width: "100%",
+    height: 140,
+    borderRadius: 8,
+    marginBottom: 8,
   },
   cardTitle: { fontSize: 16, fontWeight: "600", marginBottom: 4 },
   badgeRow: {

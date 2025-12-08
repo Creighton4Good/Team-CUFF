@@ -5,6 +5,7 @@ export type EventPayload = {
   dietarySpecification?: string;
   availableFrom: string;
   availableUntil: string;
+  imageUrl?: string;
 };
 
 // Base is just host + port
@@ -32,10 +33,7 @@ export async function createEvent(payload: EventPayload) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ...payload,
-      userId: 1, // TEMP
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {

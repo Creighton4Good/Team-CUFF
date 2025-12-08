@@ -9,11 +9,11 @@ import { fetchUserById } from "../lib/api";
 type User = {
   id: number;
   email: string;
-  first_name?: string;
-  last_name?: string;
-  is_admin: boolean | null;
-  notification_type?: string;
-  dietary_preferences?: string | null;
+  firstName?: string;
+  lastName?: string;
+  isAdmin?: boolean | null;
+  notificationType?: string;
+  dietaryPreferences?: string | null;
 };
 
 type UserContextType = {
@@ -33,18 +33,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
       try {
-        // 🔴 Use the same user ID you’re testing with
-        const CURRENT_USER_ID = 1; // non-admin in your table
+        const CURRENT_USER_ID = 1; // row with is_admin
 
         const data = await fetchUserById(CURRENT_USER_ID);
         console.log("[UserContext] loaded user", data);
+        
         setUser(data);
-        setIsAdmin(!!data?.is_admin);
       } catch (err) {
         console.error("Failed to fetch user profile", err);
       } finally {
@@ -54,6 +52,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
     loadUser();
   }, []);
+
+  // Derive admin state directly from user object
+  const isAdmin = !!user?.isAdmin;
 
   return (
     <UserContext.Provider value={{ user, loading, isAdmin }}>

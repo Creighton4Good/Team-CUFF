@@ -5,6 +5,7 @@ import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { ActivityIndicator, Text, useColorScheme, View } from "react-native";
+import { UserProvider } from "../hooks/UserContext";
 
 // This tells the splash screen to stay visible until we're ready
 SplashScreen.preventAutoHideAsync();
@@ -142,13 +143,15 @@ function InitialLayout() {
 export default function RootLayout() {
   const scheme = useColorScheme();
   return (
-    <ClerkProvider
-      publishableKey={CLERK_PUBLISHABLE_KEY}
-      tokenCache={tokenCache}
-    >
-      <ThemeProvider value={MyTheme}>
-        <InitialLayout />
-      </ThemeProvider>
-    </ClerkProvider>
+    <UserProvider>
+      <ClerkProvider
+        publishableKey={CLERK_PUBLISHABLE_KEY}
+        tokenCache={tokenCache}
+      >
+        <ThemeProvider value={MyTheme}>
+          <InitialLayout />
+        </ThemeProvider>
+      </ClerkProvider>
+    </UserProvider>
   );
 }

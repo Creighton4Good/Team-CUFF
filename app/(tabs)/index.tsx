@@ -1,9 +1,10 @@
-import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useClerk, useUser as useClerkUser} from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Button, FlatList, StyleSheet, Text, View } from "react-native";
-import { fetchEvents } from "../../lib/api";
+import { Button, FlatList, StyleSheet, Text, View, Image } from "react-native";
+import { fetchEvents, deleteEvent } from "../../lib/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUser as useAppUser } from "../../hooks/UserContext";
 
 const PREFS_KEY = "cuff_preferences";
 
@@ -16,6 +17,7 @@ type Event = {
   availableFrom: string;
   availableUntil: string;
   status: string;
+  imageUrl?: string;
 };
 
 type Preferences = {
@@ -27,10 +29,11 @@ type Preferences = {
 }
 
 export default function HomeScreen() {
-  const { user } = useUser();
+  const { user: clerkUser } = useClerkUser();
   const router = useRouter();
   const { signOut } = useClerk();
-  const isAdmin = user?.publicMetadata?.role === "admin";
+  
+  const {isAdmin } = useAppUser();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [prefs, setPrefs] = useState<Preferences>({
@@ -150,11 +153,20 @@ export default function HomeScreen() {
     return badges;
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteEvent(id);
+      setEvents(prev => prev.filter(e => e.id !== id));
+    } catch (e) {
+      console.error("Failed to delete event", e);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back!</Text>
       <Text style={styles.userInfo}>
-        Hello, {user?.firstName || "User"}!
+        Hello, {clerkUser?.firstName || "User"}!
       </Text>
 
       {isAdmin && (
@@ -171,6 +183,23 @@ export default function HomeScreen() {
         </Text>
       </View>
 
+      <View style={{ marginBottom: 8 }}>
+        <Text style={{ fontSize: 13 }}>
+          Notifications: {/* just read from AsyncStorage later or from backend once wired */}
+          (set in Preferences)
+        </Text>
+        <Text style={{ fontSize: 13 }}>
+          Filters active:{" "}
+          {[
+            prefs.avoidNuts && "no nuts",
+            prefs.avoidGluten && "no gluten",
+            prefs.avoidDairy && "no dairy",
+          ]
+            .filter(Boolean)
+            .join(", ") || "none"}
+        </Text>
+      </View>
+
       <Text style={{ fontSize: 18, marginBottom: 8 }}>
         Available Food Events
       </Text>
@@ -182,6 +211,13 @@ export default function HomeScreen() {
           const badges = getHighlightBadges(item);
           return (
             <View style={styles.card}>
+              {item.imageUrl ? (
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.cardImage}
+                  resizeMode="cover"
+                />
+              ) : null}
               <Text style={styles.cardTitle}>{item.title}</Text>
               <Text>{item.location}</Text>
               <Text>{formatRange(item.availableFrom, item.availableUntil)}</Text>
@@ -202,6 +238,16 @@ export default function HomeScreen() {
                       <Text style={styles.badgeText}>{b}</Text>
                     </View>
                   ))}
+                </View>
+              )}
+
+              {isAdmin && (
+                <View style={{ marginTop: 8 }}>
+                  <Button
+                    title="Delete Event"
+                    onPress={() => handleDelete(item.id)}
+                    color="#b0020"
+                  />
                 </View>
               )}
             </View>
@@ -232,6 +278,13 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 10,
+    backgroundColor: "#6CADDE",
+  },
+  cardImage: {
+    width: "100%",
+    height: 140,
+    borderRadius: 8,
+    marginBottom: 8,
   },
   cardTitle: { fontSize: 16, fontWeight: "600", marginBottom: 4 },
   badgeRow: {

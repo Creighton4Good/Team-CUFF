@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Switch, ScrollView } from "react-native";
+import { 
+    View, 
+    Text, 
+    StyleSheet, 
+    Switch, 
+    ScrollView, 
+    Pressable 
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PREFS_KEY = "cuff_preferences";
@@ -12,6 +19,11 @@ type Preferences = {
   avoidDairy: boolean;
 };
 
+const NOTIFICATION_OPTIONS = ["None", "Email", "SMS", "Both"] as const;
+type NotificationType = (typeof NOTIFICATION_OPTIONS)[number];
+
+type StoredPrefs = Preferences & { notificationType: NotificationType };
+
 export default function PreferencesScreen() {
   const [prefs, setPrefs] = useState<Preferences>({
     highlightVeg: false,
@@ -20,40 +32,100 @@ export default function PreferencesScreen() {
     avoidGluten: false,
     avoidDairy: false,
   });
+  const [notificationType, setNotificationType] =
+    useState<NotificationType>("Both");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadPrefs = async () => {
       try {
         const json = await AsyncStorage.getItem(PREFS_KEY);
         if (json) {
-          setPrefs(JSON.parse(json) as Preferences);
+          const stored = JSON.parse(json) as Partial<StoredPrefs>;
+          setPrefs({
+            highlightVeg: !!stored.highlightVeg,
+            highlightVegan: !!stored.highlightVegan,
+            avoidNuts: !!stored.avoidNuts,
+            avoidGluten: !!stored.avoidGluten,
+            avoidDairy: !!stored.avoidDairy,
+          });
+          if (
+            stored.notificationType &&
+            NOTIFICATION_OPTIONS.includes(stored.notificationType as any)
+          ) {
+            setNotificationType(stored.notificationType as NotificationType);
+          }
         }
       } catch (e) {
         console.error("Failed to load preferences", e);
+      } finally {
+        setLoading(false);
       }
     };
     loadPrefs();
   }, []);
 
-  const update = async (partial: Partial<Preferences>) => {
-    const next = { ...prefs, ...partial };
-    setPrefs(next);
+  const persist = async (nextPrefs: Preferences, nextType: NotificationType) => {
+    setPrefs(nextPrefs);
+    setNotificationType(nextType);
     try {
-      await AsyncStorage.setItem(PREFS_KEY, JSON.stringify(next));
+      const toStore: StoredPrefs = { ...nextPrefs, notificationType: nextType };
+      await AsyncStorage.setItem(PREFS_KEY, JSON.stringify(toStore));
     } catch (e) {
       console.error("Failed to save preferences", e);
     }
   };
 
+  const update = async (partial: Partial<Preferences>) => {
+    const next = { ...prefs, ...partial };
+    await persist(next, notificationType);
+  };
+
+  const changeNotificationType = (type: NotificationType) => {
+    persist(prefs, type);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading preferences…</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Food & Notification Preferences</Text>
       <Text style={styles.subtitle}>
-        These preferences control which events you see and how they’re
-        highlighted on the Dashboard. Admins are encouraged to use phrases like
-        “vegan option”, “vegetarian”, “gluten-free”, and “contains nuts” in the
-        dietary notes.
+        These preferences control which events you see and, in the future,
+        how CUFF contacts you when new food is posted.
       </Text>
+
+    <Text style={styles.sectionHeader}>Notification method</Text>
+      <View style={styles.chipRow}>
+        {NOTIFICATION_OPTIONS.map((option) => {
+          const selected = option === notificationType;
+          return (
+            <Pressable
+              key={option}
+              onPress={() => changeNotificationType(option)}
+              style={[
+                styles.chip,
+                selected && styles.chipSelected,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  selected && styles.chipTextSelected,
+                ]}
+              >
+                {option}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
       <Text style={styles.sectionHeader}>Highlight options I like</Text>
 
@@ -135,4 +207,27 @@ const styles = StyleSheet.create({
   },
   optionTitle: { fontSize: 15, fontWeight: "500" },
   optionDescription: { fontSize: 12, color: "#666", marginTop: 4 },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 12,
+  },
+  chip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#005CA9",
+  },
+  chipSelected: {
+    backgroundColor: "#005CA9",
+  },
+  chipText: {
+    fontSize: 13,
+    color: "#005CA9",
+  },
+  chipTextSelected: {
+    color: "#fff",
+  },
 });

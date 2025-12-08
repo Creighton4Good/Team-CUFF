@@ -183,6 +183,23 @@ export default function HomeScreen() {
         </Text>
       </View>
 
+      <View style={{ marginBottom: 8 }}>
+        <Text style={{ fontSize: 13 }}>
+          Notifications: {/* just read from AsyncStorage later or from backend once wired */}
+          (set in Preferences)
+        </Text>
+        <Text style={{ fontSize: 13 }}>
+          Filters active:{" "}
+          {[
+            prefs.avoidNuts && "no nuts",
+            prefs.avoidGluten && "no gluten",
+            prefs.avoidDairy && "no dairy",
+          ]
+            .filter(Boolean)
+            .join(", ") || "none"}
+        </Text>
+      </View>
+
       <Text style={{ fontSize: 18, marginBottom: 8 }}>
         Available Food Events
       </Text>

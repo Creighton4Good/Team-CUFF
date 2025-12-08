@@ -42,6 +42,19 @@ export default function AdminPost() {
     });
   };
 
+  const toLocalIsoString = (date: Date): string => {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1); // 0-based
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  };
+
   const pickFromLibrary = async () => {
     const { status } =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -99,8 +112,10 @@ export default function AdminPost() {
 
     setSubmitting(true);
     try {
-      const availableFromIso = availableFrom.toISOString().slice(0, 19);
-      const availableUntilIso = availableUntil.toISOString().slice(0, 19);
+      const availableFromIso = toLocalIsoString(availableFrom);
+      const availableUntilIso = toLocalIsoString(availableUntil);
+
+      const ADMIN_USER_ID = 1;
 
       await createEvent({
         title: title.trim(),
@@ -110,6 +125,7 @@ export default function AdminPost() {
         availableFrom: availableFromIso,
         availableUntil: availableUntilIso,
         imageUrl: imageUri ?? undefined, // send URI as imageUrl
+        userId: ADMIN_USER_ID,
       });
 
       Alert.alert("Success", "Post created successfully!");

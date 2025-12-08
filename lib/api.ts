@@ -6,6 +6,7 @@ export type EventPayload = {
   availableFrom: string;
   availableUntil: string;
   imageUrl?: string;
+  userId: number;
 };
 
 // Base is just host + port
@@ -28,7 +29,7 @@ export async function fetchEvents() {
 // POST /api/posts
 export async function createEvent(payload: EventPayload) {
   const url = `${API_BASE_URL}/api/posts`;
-  console.log("createEvent ->", url);
+  console.log("createEvent ->", url, payload);
 
   const res = await fetch(url, {
     method: "POST",

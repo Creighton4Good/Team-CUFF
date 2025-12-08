@@ -46,3 +46,19 @@ export async function createEvent(payload: EventPayload) {
 
   return res.json();
 }
+
+// DELETE /api/posts/{id}
+export async function deleteEvent(id: number): Promise<void> {
+    const url = `${API_BASE_URL}/api/posts/${id}`;
+    console.log("deleteEvent ->", url);
+
+    const res = await fetch(url, {
+        method: "DELETE",
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        console.error("Failed to delete event", res.status, text);
+        throw new Error("Failed to delete event");
+    }
+}

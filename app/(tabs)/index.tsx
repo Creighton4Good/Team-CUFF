@@ -2,7 +2,7 @@ import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Button, FlatList, StyleSheet, Text, View } from "react-native";
-import { fetchEvents } from "../../lib/api";
+import { fetchEvents, deleteEvent } from "../../lib/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PREFS_KEY = "cuff_preferences";
@@ -150,6 +150,15 @@ export default function HomeScreen() {
     return badges;
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteEvent(id);
+      setEvents(prev => prev.filter(e => e.id !== id));
+    } catch (e) {
+      console.error("Failed to delete event", e);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back!</Text>
@@ -202,6 +211,16 @@ export default function HomeScreen() {
                       <Text style={styles.badgeText}>{b}</Text>
                     </View>
                   ))}
+                </View>
+              )}
+
+              {isAdmin && (
+                <View style={{ marginTop: 8 }}>
+                  <Button
+                    title="Delete Event"
+                    onPress={() => handleDelete(item.id)}
+                    color="#b0020"
+                  />
                 </View>
               )}
             </View>

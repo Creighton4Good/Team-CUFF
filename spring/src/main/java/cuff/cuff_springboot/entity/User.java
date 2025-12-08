@@ -10,10 +10,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable = false)
+    @Column(name = "firstName", nullable = false)
     private String firstName;
 
-    @Column(nullable = false)
+    @Column(name = "lastName", nullable = false)
     private String lastName;
 
     @Column(nullable = false, unique = true) 

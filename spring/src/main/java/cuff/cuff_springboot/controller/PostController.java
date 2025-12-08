@@ -12,27 +12,23 @@ public class PostController {
     @Autowired
     private PostService postService;
 
-    // CREATE
     @PostMapping
-    public Post createPost(@RequestBody Post post) {
+    public Post createPost(@RequestBody Post post) { // to create a post
         return postService.createPost(post);
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
-    public void deletePost(@PathVariable Integer id) {
+    public void deletePost(@PathVariable Integer id) { //to delete a post by its ID
         postService.deletePost(id);
     }
 
-    // ⭐ GET ALL POSTS
     @GetMapping
     public List<Post> getAllPosts() {
-        return postService.getAllPosts();
+        return postService.getAllPosts(); //to get all post
     }
 
-    // ⭐ GET POST BY ID
     @GetMapping("/{id}")
-    public Post getPostById(@PathVariable Integer id) {
+    public Post getPostById(@PathVariable Integer id) { //get a post by its ID
         return postService.getPostById(id);
     }
 }

@@ -33,7 +33,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { signOut } = useClerk();
   
-  const {isAdmin } = useAppUser();
+  const { isAdmin, user: appUser } = useAppUser();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [prefs, setPrefs] = useState<Preferences>({
@@ -185,15 +185,15 @@ export default function HomeScreen() {
 
       <View style={{ marginBottom: 8 }}>
         <Text style={{ fontSize: 13 }}>
-          Notifications: {/* just read from AsyncStorage later or from backend once wired */}
-          (set in Preferences)
+          Notifications: {" "}
+          {appUser?.notificationType ?? "Not set (update in Preferences)"}
         </Text>
         <Text style={{ fontSize: 13 }}>
           Filters active:{" "}
           {[
-            prefs.avoidNuts && "no nuts",
-            prefs.avoidGluten && "no gluten",
-            prefs.avoidDairy && "no dairy",
+            prefs.avoidNuts && "No nuts",
+            prefs.avoidGluten && "No gluten",
+            prefs.avoidDairy && "No dairy",
           ]
             .filter(Boolean)
             .join(", ") || "none"}

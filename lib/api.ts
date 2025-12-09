@@ -73,3 +73,31 @@ export async function fetchUserById(id: number) {
 
   return res.json();
 }
+
+export type UpdatePreferencesPayload = {
+  notificationType: string;
+  dietaryPreferences: string;
+};
+
+// PUT /api/users/preferences/{userId}
+export async function updateUserPreferences(
+  userId: number,
+  payload: UpdatePreferencesPayload
+) {
+  const url = `${API_BASE_URL}/api/users/preferences/${userId}`;
+  console.log("updateUserPreferences ->", url, payload);
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Failed to update preferences", res.status, text);
+    throw new Error("Failed to update preferences");
+  }
+
+  return res.json(); // returns updated User
+}

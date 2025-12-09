@@ -211,45 +211,50 @@ export default function HomeScreen() {
           const badges = getHighlightBadges(item);
           return (
             <View style={styles.card}>
-              {item.imageUrl ? (
+              {item.imageUrl && (
                 <Image
                   source={{ uri: item.imageUrl }}
                   style={styles.cardImage}
                   resizeMode="cover"
                 />
-              ) : null}
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text>{item.location}</Text>
-              <Text>{formatRange(item.availableFrom, item.availableUntil)}</Text>
-
-              {!!item.description && (
-                <Text style={{ marginTop: 4 }}>{item.description}</Text>
               )}
-              {!!item.dietarySpecification && (
-                <Text style={{ marginTop: 4 }}>
+            
+              <View style = {styles.cardBody}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+
+                <Text style={styles.cardLocation}>📍 {item.location}</Text>
+                <Text style={styles.cardTime}>
+                  🕒 {formatRange(item.availableFrom, item.availableUntil)}
+                </Text>
+
+                {!!item.description && (
+                  <Text style={styles.cardDescription}>{item.description}</Text>
+                )}
+                {!!item.dietarySpecification && (
+                <Text style={styles.cardDietary}>
                   Dietary: {item.dietarySpecification}
                 </Text>
-              )}
+                )}
 
-              {badges.length > 0 && (
-                <View style={styles.badgeRow}>
-                  {badges.map((b) => (
-                    <View key={b} style={styles.badge}>
-                      <Text style={styles.badgeText}>{b}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+                {badges.length > 0 && (
+                  <View style={styles.badgeRow}>
+                    {badges.map((b) => (
+                      <View key={b} style={styles.badge}>
+                        <Text style={styles.badgeText}>{b}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
 
-              {isAdmin && (
-                <View style={{ marginTop: 8 }}>
-                  <Button
-                    title="Delete Event"
-                    onPress={() => handleDelete(item.id)}
-                    color="#b0020"
-                  />
-                </View>
-              )}
+                {isAdmin && (
+                  <View style={styles.cardAdminRow}>
+                    <Button
+                      title="Delete Event"
+                      onPress={() => handleDelete(item.id)}
+                    />
+                  </View>
+                )}
+              </View>
             </View>
           );
         }}
@@ -273,24 +278,55 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
   },
   card: {
+    backgroundColor: "#ffffff",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
     borderWidth: 1,
     borderColor: "#ddd",
     padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-    backgroundColor: "#6CADDE",
+    borderRadius: 12,
+    marginBottom: 16,
   },
   cardImage: {
     width: "100%",
-    height: 140,
-    borderRadius: 8,
-    marginBottom: 8,
+    height: 160,
   },
-  cardTitle: { fontSize: 16, fontWeight: "600", marginBottom: 4 },
+  cardBody: {
+    padding: 12,
+  },
+  cardTitle: { 
+    fontSize: 17, 
+    fontWeight: "700", 
+    marginBottom: 4,
+    color: "#00235D" 
+  },
+  cardLocation: {
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 6,
+  },
+  cardTime: {
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 6,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: "#222",
+  },
+  cardDietary: {
+    fontSize: 13,
+    color: "#444",
+    marginTop: 4,
+  },
   badgeRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginTop: 6,
+    marginTop: 8,
     gap: 6,
   },
   badge: {
@@ -304,5 +340,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#0b5ed7",
     fontWeight: "500",
+  },
+  cardAdminRow: {
+    marginTop: 10,
   },
 });

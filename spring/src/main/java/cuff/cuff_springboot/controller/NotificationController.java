@@ -32,4 +32,5 @@ public class NotificationController {
     public Notification getNotificationById(@PathVariable Integer id) { // get notification by ID
         return notificationService.getNotificationById(id);
     }
+
 }

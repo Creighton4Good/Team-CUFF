@@ -19,7 +19,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Post createPost(Post post) {
-        User user = userRepository.findById(post.getUserId()).orElse(null);
+        User user = userRepository.findById(post.getUserId()).orElse(null); //admin only posting
         if (user == null || user.getIsAdmin() == null || !user.getIsAdmin()) {
         throw new RuntimeException("Only administrators can create posts.");
         }

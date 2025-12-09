@@ -8,6 +8,8 @@ public interface UserService {
     void deleteUser(Integer id);
     User getUserById(Integer id);
     List<User> getAllUsers();
+    User updatePreferences(Integer userId, User prefs);
+
 
 }
 

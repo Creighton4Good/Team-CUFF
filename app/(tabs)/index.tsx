@@ -16,7 +16,12 @@ import {
   Image, 
   ScrollView 
 } from "react-native";
-import { fetchEvents, deleteEvent } from "../../lib/api";
+import { 
+  fetchEvents, 
+  deleteEvent,
+  fetchNotificationsForUser,
+  Notification as CuffNotification, 
+} from "../../lib/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUser as useAppUser } from "../../hooks/UserContext";
 import { colors } from "@/constants/theme";
@@ -49,6 +54,26 @@ export default function HomeScreen() {
   const { signOut } = useClerk();
   const { isAdmin, user: appUser } = useAppUser();
 
+    const [notifType, setNotifType] = useState<string | null>(null);
+
+  const notificationLabel = (() => {
+    // Prefer what we saved in AsyncStorage
+    const raw = notifType ?? appUser?.notificationType;
+
+    if (!raw) return "Not set";
+
+    const normalized = raw.toLowerCase();
+
+    if (normalized === "none") return "None";
+    if (normalized === "email") return "Email";
+    if (normalized === "sms") return "SMS";
+    if (normalized === "both") return "Email & push";
+    if (normalized === "in-app" || normalized === "in_app") return "In-app";
+
+    // Fallback: show whatever came back
+    return raw;
+})();
+
   // Raw events from backend, before filtering
   const [events, setEvents] = useState<Event[]>([]);
 
@@ -60,6 +85,8 @@ export default function HomeScreen() {
     avoidGluten: false,
     avoidDairy: false,
   });
+
+  const [notifications, setNotifications] = useState<CuffNotification[]>([]);
 
   // Load events + stored preferences once on mount
   useEffect(() => {
@@ -75,7 +102,19 @@ export default function HomeScreen() {
       try {
         const json = await AsyncStorage.getItem(PREFS_KEY);
         if (json) {
-          setPrefs(JSON.parse(json) as Preferences);
+          const stored = JSON.parse(json) as any;
+
+          setPrefs({
+            highlightVeg: !!stored.highlightVeg,
+            highlightVegan: !!stored.highlightVegan,
+            avoidNuts: !!stored.avoidNuts,
+            avoidGluten: !!stored.avoidGluten,
+            avoidDairy: !!stored.avoidDairy,
+          });
+
+          if (stored.notificationType) {
+            setNotifType(stored.notificationType as string);
+          }
         }
       } catch (e) {
         console.error("Failed to load prefs", e);
@@ -83,6 +122,22 @@ export default function HomeScreen() {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    if (!appUser) return;
+
+    const loadNotifications = async () => {
+      try {
+        const data = await fetchNotificationsForUser(appUser.id);
+        console.log("[Home] notifications for user", appUser.id, data);
+        setNotifications(data);
+      } catch (e) {
+        console.error("Failed to load notifications", e);
+      }
+    };
+
+    loadNotifications();
+  }, [appUser]);
 
   /**
    * Returns true if an event should be shown based on status, time window,
@@ -255,10 +310,12 @@ export default function HomeScreen() {
             <View style={styles.infoCard}>
               <Text style={styles.infoTitle}>Your filters</Text>
               <Text style={styles.infoText}>
-                Notifications: <Text style={styles.infoTextStrong}>Set in Preferences</Text>
+                Notifications: {" "}
+                <Text style={styles.infoTextStrong}>{notificationLabel}</Text>
               </Text>
               <Text style={styles.infoText}>
-                Hidden for: <Text style={styles.infoTextStrong}>{filterSummary}</Text>
+                Hidden for: {" "}
+                <Text style={styles.infoTextStrong}>{filterSummary}</Text>
               </Text>
 
               <Text style={styles.infoHint}>
@@ -273,6 +330,27 @@ export default function HomeScreen() {
                     color={colors.cuBlue}
                   />
                 </View>
+              )}
+            </View>
+
+            <View style={styles.infoCard}>
+              <Text style={styles.infoTitle}>Your notifications</Text>
+              <Text style={styles.infoText}>
+                Unread:{" "}
+                <Text style={styles.infoTextStrong}>
+                  {notifications.filter((n) => n.status === "unread").length}
+                </Text>
+              </Text>
+
+              {notifications.length === 0 ? (
+                <Text style={styles.infoHint}>
+                  You don’t have any notifications yet.
+                </Text>
+              ) : (
+                <Text style={styles.infoHint}>
+                  When admins post new food events you’re subscribed to, they’ll
+                  appear here as notifications.
+                </Text>
               )}
             </View>
 

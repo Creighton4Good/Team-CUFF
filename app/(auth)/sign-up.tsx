@@ -23,7 +23,7 @@ import {
 } from "react-native";
 import { colors } from "@/constants/theme";
 
-type NotificationPref = "push" | "email" | "both";
+type NotificationPref = "in-app" | "email" | "both";
 type Stage = "form" | "confirm" | "verify";
 
 export default function SignUpScreen() {
@@ -38,7 +38,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
 
   // Notification preference for CUFF (persisted after verification)
-  const [notif, setNotif] = useState<NotificationPref>("push");
+  const [notif, setNotif] = useState<NotificationPref>("in-app");
 
   // Multi-step flow + verification code and UI state
   const [stage, setStage] = useState<Stage>("form");
@@ -218,12 +218,12 @@ export default function SignUpScreen() {
 
                   {/* Simple chip-style selector for notification preference */}
                   <View style={styles.chipRow}>
-                    {(["push", "email", "both"] as NotificationPref[]).map(
+                    {(["in-app", "email", "both"] as NotificationPref[]).map(
                       (option) => {
                         const selected = option === notif;
                         const label =
-                          option === "push"
-                            ? "Push"
+                          option === "in-app"
+                            ? "In-App"
                             : option === "email"
                             ? "Email"
                             : "Both";
@@ -293,11 +293,11 @@ export default function SignUpScreen() {
                     </Text>
                     <Text style={styles.confirmLine}>
                       <Text style={styles.confirmLabel}>Notifications: </Text>
-                      {notif === "push"
-                        ? "Push"
+                      {notif === "in-app"
+                        ? "In-App"
                         : notif === "email"
                         ? "Email"
-                        : "Push & email"}
+                        : "In-app & email"}
                     </Text>
                   </View>
 

@@ -101,3 +101,54 @@ export async function updateUserPreferences(
 
   return res.json(); // returns updated User
 }
+
+export type Notification = {
+  id: number;
+  postId: number;
+  userId: number;
+  notificationType: string;
+  messageContent: string | null;
+  sentAt: string | null;
+  status: string | null;
+};
+
+// GET /api/notifications/user/{userId}
+export async function fetchNotificationsForUser(
+  userId: number
+): Promise<Notification[]> {
+  const url = `${API_BASE_URL}/api/notifications/user/${userId}`;
+  console.log("fetchNotificationsForUser ->", url);
+
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Failed to fetch notifications", res.status, text);
+    throw new Error("Failed to fetch notifications");
+  }
+
+  return res.json();
+}
+
+export async function fetchUserByEmail(email: string) {
+  const url = `${API_BASE_URL}/api/users/by-email?email=${encodeURIComponent(
+    email
+  )}`;
+  console.log("fetchUserByEmail ->", url);
+
+  const res = await fetch(url);
+
+  // If backend says "no user with that email", just return null
+  if (res.status === 404) {
+    console.log("No CUFF user found for email, treating as non-admin");
+    return null;
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Failed to fetch user by email", res.status, text);
+    throw new Error("Failed to fetch user by email");
+  }
+
+  return res.json();
+}

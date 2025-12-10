@@ -114,11 +114,31 @@ export default function AdminPost() {
 
         const totalEvents = events.length;
         const activeEvents = events.filter((e) => {
+          const now = new Date();
+
+          // Treat missing status as active (same as HomeScreen)
+          const isStatusActive =
+            !e.status || e.status.toLowerCase() === "active";
+
+          if (!isStatusActive) return false;
+
+          // If no end time, assume it's still active
+          if (!e.availableUntil) return true;
+
           const until = new Date(e.availableUntil);
-          return (
-            e.status?.toLowerCase() === "active" &&
-            until.getTime() > now.getTime()
-          );
+
+          // If we can't parse the date, fail open and treat as active
+          if (!Number.isFinite(until.getTime())) {
+            console.log(
+              "[Admin] bad availableUntil for event",
+              e.id,
+              e.availableUntil
+            );
+            return true;
+          }
+
+          // Active if it ends in the future
+          return until.getTime() > now.getTime();
         }).length;
         const expiredEvents = totalEvents - activeEvents;
 

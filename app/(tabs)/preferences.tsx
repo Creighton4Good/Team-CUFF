@@ -31,7 +31,7 @@ type Preferences = {
   avoidDairy: boolean;
 };
 
-const NOTIFICATION_OPTIONS = ["None", "Email", "SMS", "Both"] as const;
+const NOTIFICATION_OPTIONS = ["None", "Email", "In-app", "Both"] as const;
 type NotificationType = (typeof NOTIFICATION_OPTIONS)[number];
 
 type StoredPrefs = Preferences & { notificationType: NotificationType };

@@ -184,15 +184,15 @@ function InitialLayout() {
  */
 export default function RootLayout() {
   return (
-    <UserProvider>
-      <ClerkProvider
+    <ClerkProvider
         publishableKey={CLERK_PUBLISHABLE_KEY}
         tokenCache={tokenCache}
       >
+      <UserProvider>
         <ThemeProvider value={MyTheme}>
           <InitialLayout />
         </ThemeProvider>
-      </ClerkProvider>
-    </UserProvider>
+      </UserProvider>
+    </ClerkProvider>
   );
 }

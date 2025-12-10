@@ -4,7 +4,7 @@ import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import { ActivityIndicator, Text, useColorScheme, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import { UserProvider } from "../hooks/UserContext";
 import { colors } from "@/constants/theme";
 
@@ -44,12 +44,12 @@ const MyTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: "#005CA9",
-    background: "#6CADDE",
-    card: "#005CA9",
-    text: "#00235D",
-    border: "#005CA9",
-    notification: "#005CA9",
+    primary: colors.cuBlue,
+    background: colors.cuLightBlue,
+    card: colors.cuNavy,
+    text: colors.cuNavy,
+    border: colors.cuBlue,
+    notification: colors.cuBlue,
   }
 }; 
 
@@ -104,10 +104,40 @@ function InitialLayout() {
   // While Clerk is loading, we'll show a simple loading spinner
   if (!isLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 10 }}>Loading...</Text>
+      <View 
+        style={{ 
+          flex: 1, 
+          justifyContent: "center", 
+          alignItems: "center",
+          padding: 24, 
+        }}
+      >
+        <View
+          style={{
+            padding: 20,
+            borderRadius: 12,
+            backgroundColor: colors.white,
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 3,
+          }}
+        >
+        <ActivityIndicator size="large" color={colors.cuBlue} />
+        <Text 
+          style={{ 
+            marginTop: 12,
+            fontSize: 16,
+            fontWeight: "600",
+            color: colors.cuNavy, 
+          }}
+        >
+          Loading CUFF...
+        </Text>
       </View>
+    </View>
     );
   }
 
@@ -142,7 +172,6 @@ function InitialLayout() {
  * can access the user's authentication state.
  */
 export default function RootLayout() {
-  const scheme = useColorScheme();
   return (
     <UserProvider>
       <ClerkProvider

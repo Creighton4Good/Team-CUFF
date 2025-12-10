@@ -18,6 +18,7 @@ import { createEvent, fetchEvents } from "@/lib/api";
 import { useUser as useClerkUser } from "@clerk/clerk-expo";
 import { useUser as useAppUser } from "@/hooks/UserContext";
 import { useNavigation } from "expo-router";
+import { colors } from "@/constants/theme";
 
 type Event = {
   id: number;
@@ -50,7 +51,12 @@ export default function AdminPost() {
   const { isAdmin } = useAppUser();
   const navigation = useNavigation();
 
-  console.log("[AdminPost] isAdmin =", isAdmin, "email =", clerkUser?.primaryEmailAddress?.emailAddress);
+  console.log(
+    "[AdminPost] isAdmin =", 
+    isAdmin, 
+    "email =", 
+    clerkUser?.primaryEmailAddress?.emailAddress
+  );
 
   useEffect(() => {
     navigation.setOptions({
@@ -305,66 +311,92 @@ export default function AdminPost() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: "#f5f7fb" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={80}
     >
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.bigText}>Admin Dashboard</Text>
-        <Text style={styles.subText}>
-          Logged in as: {" "}
-          {clerkUser?.primaryEmailAddress?.emailAddress ?? "Unknown"}
-        </Text>
-
-        <View style={styles.analyticsCard}>
-          <Text style={styles.analyticsTitle}>CUFF Analytics</Text>
-          <Text>
-            Total posts: {analytics.totalEvents} • Active:{" "}
-            {analytics.activeEvents} • Expired: {analytics.expiredEvents}
+        {/* HEADER / IDENTITY */}
+        <View style={styles.headerCard}>
+          <Text style={styles.headerTitle}>CUFF Admin Dashboard</Text>
+          <Text style={styles.headerSubtitle}>
+            Signed in as{" "}
+            <Text style={styles.headerEmail}>
+              {clerkUser?.primaryEmailAddress?.emailAddress ?? "Unknown user"}
+            </Text>
           </Text>
-          <Text>Unique locations used: {analytics.uniqueLocations}</Text>
+          <Text style={styles.headerHint}>
+            Create new leftover food posts and review basic usage patterns.
+          </Text>
+        </View>
+
+        {/* ANALYTICS OVERVIEW */}
+        <View style={styles.analyticsCard}>
+          <Text style={styles.sectionLabel}>At a glance</Text>
+          <View style={styles.analyticsRow}>
+            <View style={styles.analyticsStat}>
+              <Text style={styles.analyticsStatLabel}>Total posts</Text>
+              <Text style={styles.analyticsStatValue}>
+                {analytics.totalEvents}
+              </Text>
+            </View>
+            <View style={styles.analyticsStat}>
+              <Text style={styles.analyticsStatLabel}>Active</Text>
+              <Text style={styles.analyticsStatValue}>
+                {analytics.activeEvents}
+              </Text>
+            </View>
+            <View style={styles.analyticsStat}>
+              <Text style={styles.analyticsStatLabel}>Locations</Text>
+              <Text style={styles.analyticsStatValue}>
+                {analytics.uniqueLocations}
+              </Text>
+            </View>
+          </View>
 
           {analytics.topLocations.length > 0 && (
-            <View style={{ marginTop: 8 }}>
-              <Text style={styles.analyticsSectionLabel}>Top locations</Text>
+            <View style={styles.analyticsSection}>
+              <Text style={styles.analyticsSectionTitle}>Top locations</Text>
               {analytics.topLocations.map((loc) => (
-                <Text key={loc.location}>
+                <Text key={loc.location} style={styles.analyticsBodyText}>
                   • {loc.location}: {loc.count} posts
                 </Text>
               ))}
             </View>
           )}
 
-          <View style={{ marginTop: 8 }}>
-            <Text style={styles.analyticsSectionLabel}>Dietary options</Text>
-            <Text>
+          <View style={styles.analyticsSection}>
+            <Text style={styles.analyticsSectionTitle}>Dietary options</Text>
+            <Text style={styles.analyticsBodyText}>
               Vegan: {analytics.dietaryCounts.vegan} • Vegetarian:{" "}
               {analytics.dietaryCounts.vegetarian}
             </Text>
-            <Text>
+            <Text style={styles.analyticsBodyText}>
               Gluten-free: {analytics.dietaryCounts.glutenFree} • Nut-free:{" "}
               {analytics.dietaryCounts.nutFree}
             </Text>
           </View>
 
-          <View style={{ marginTop: 8 }}>
-            <Text style={styles.analyticsSectionLabel}>
+          <View style={styles.analyticsSection}>
+            <Text style={styles.analyticsSectionTitle}>
               Common posting times
             </Text>
             {analytics.timeBuckets.map((b) => (
-              <Text key={b.label}>
+              <Text key={b.label} style={styles.analyticsBodyText}>
                 • {b.label}: {b.count} events
               </Text>
             ))}
           </View>
         </View>
 
-        <Text style={styles.formTitle}>Create Food Post</Text>
+        {/* FORM TITLE */}
+        <Text style={styles.formTitle}>Create food post</Text>
         <Text style={styles.formSubText}>
-          Use the form below to publish a new leftover-food event and notify CUFF
-          subscribers.
+          Share leftover food on campus so students can find it before it’s
+          gone.
         </Text>
 
+        {/* FORM FIELDS */}
         <TextInput
           style={styles.input}
           placeholder="Title *"
@@ -374,14 +406,14 @@ export default function AdminPost() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Location"
+          placeholder="Location (building, room, or area)"
           placeholderTextColor="#999"
           value={location}
           onChangeText={setLocation}
         />
         <TextInput
           style={[styles.input, styles.multiline]}
-          placeholder="Description"
+          placeholder="Description (what food is available, who can take it, etc.)"
           placeholderTextColor="#999"
           value={description}
           onChangeText={setDescription}
@@ -389,16 +421,15 @@ export default function AdminPost() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Dietary specification (e.g., 'vegan option, vegetarian, gluten-free, contains nutes')"
+          placeholder="Dietary notes (e.g., 'vegan option, vegetarian, gluten-free, contains nuts')"
           placeholderTextColor="#999"
           value={dietarySpecification}
           onChangeText={setDietarySpecification}
         />
-      
-        <Text style={{ marginTop: 8, marginBottom: 4, fontWeight: "600" }}>
-          Add a photo (optional)
-        </Text>
-        <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
+
+        {/* IMAGE PICKER */}
+        <Text style={styles.smallSectionLabel}>Add a photo (optional)</Text>
+        <View style={styles.photoRow}>
           <View style={{ flex: 1 }}>
             <Button title="Take Photo" onPress={takePhoto} />
           </View>
@@ -408,18 +439,19 @@ export default function AdminPost() {
         </View>
 
         {imageUri && (
-         <View style={{ marginBottom: 12, alignItems: "center" }}>
+          <View style={styles.imagePreviewContainer}>
             <Image
               source={{ uri: imageUri }}
-              style={{ width: "100%", height: 180, borderRadius: 8 }}
+              style={styles.imagePreview}
               resizeMode="cover"
             />
-            <Text style={{ fontSize: 12, color: "#555", marginTop: 4 }}>
+            <Text style={styles.imageCaption}>
               This image will be attached to the event.
             </Text>
           </View>
         )}
 
+        {/* TIME PICKERS */}
         <Pressable
           style={styles.input}
           onPress={() => setShowFromPicker(true)}
@@ -466,13 +498,19 @@ export default function AdminPost() {
           />
         )}
 
-        <View style={{ marginTop: 16 }}>
-          <Button
-            title={submitting ? "Posting..." : "Post Food Event"}
-            onPress={handleSubmit}
-            disabled={submitting}
-          />
-        </View>
+        {/* SUBMIT BUTTON */}
+        <Pressable
+          style={[
+            styles.primaryButton,
+            submitting && { opacity: 0.7 },
+          ]}
+          onPress={handleSubmit}
+          disabled={submitting}
+        >
+          <Text style={styles.primaryButtonText}>
+            {submitting ? "Posting…" : "Post food event"}
+          </Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -482,79 +520,176 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f7fb",
   },
-  bigText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
+
+  // Header / identity
+  headerCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#dde5f5",
   },
-  subText: {
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: colors.cuNavy,
+    marginBottom: 4,
+    textAlign: "left",
+  },
+  headerSubtitle: {
     fontSize: 14,
     color: "#555",
-    marginBottom: 16,
-    textAlign: "center",
+    marginBottom: 4,
+  },
+  headerEmail: {
+    fontWeight: "600",
+    color: colors.cuBlue,
+  },
+  headerHint: {
+    fontSize: 12,
+    color: "#777",
+    marginTop: 4,
+  },
+
+  // Analytics
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.cuNavy,
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   analyticsCard: {
-    marginBottom: 16,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#f3f6ff",
+    marginBottom: 20,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: "#E9F2FB",
     borderWidth: 1,
     borderColor: "#c5d0f5",
   },
-  analyticsTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-    color: "#00235D",
-  },
-  analyticsSectionLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 2,
-    marginTop: 2,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
+  analyticsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 12,
-    color: "#000000",
   },
-  multiline: {
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  lockedContainer: {
+  analyticsStat: {
     flex: 1,
-    padding: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
+    marginRight: 8,
   },
-  lockedTitle: {
+  analyticsStatLabel: {
+    fontSize: 12,
+    color: "#445",
+    marginBottom: 2,
+  },
+  analyticsStatValue: {
     fontSize: 20,
     fontWeight: "700",
-    marginBottom: 8,
+    color: colors.cuNavy,
   },
-  lockedText: {
-    fontSize: 14,
-    color: "#555",
-    textAlign: "center",
+  analyticsSection: {
+    marginTop: 8,
   },
+  analyticsSectionTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 4,
+    color: colors.cuNavy,
+  },
+  analyticsBodyText: {
+    fontSize: 12,
+    color: "#444",
+    marginBottom: 2,
+  },
+
+  // Form
   formTitle: {
     fontSize: 20,
     fontWeight: "700",
-    marginTop: 8,
+    marginTop: 4,
     marginBottom: 4,
-    textAlign: "left",
+    color: colors.cuNavy,
   },
   formSubText: {
     fontSize: 13,
     color: "#555",
     marginBottom: 12,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#d0d4e4",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+    color: "#000000",
+    backgroundColor: "#ffffff",
+  },
+  multiline: {
+    minHeight: 80,
+    textAlignVertical: "top",
+  },
+
+  smallSectionLabel: {
+    marginTop: 8,
+    marginBottom: 4,
+    fontWeight: "600",
+    fontSize: 13,
+    color: colors.cuNavy,
+  },
+  photoRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 8,
+  },
+  imagePreviewContainer: {
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  imagePreview: {
+    width: "100%",
+    height: 180,
+    borderRadius: 8,
+  },
+  imageCaption: {
+    fontSize: 12,
+    color: "#555",
+    marginTop: 4,
+  },
+
+  // Primary button
+  primaryButton: {
+    marginTop: 16,
+    backgroundColor: colors.cuBlue,
+    borderRadius: 999,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  primaryButtonText: {
+    color: colors.white,
+    fontWeight: "700",
+    fontSize: 16,
+  },
+
+  // Locked (non-admin)
+  lockedContainer: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f7fb",
+  },
+  lockedTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 8,
+    color: colors.cuNavy,
+  },
+  lockedText: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
   },
 });

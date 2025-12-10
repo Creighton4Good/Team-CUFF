@@ -1,7 +1,15 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Button, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { 
+  Pressable, 
+  ScrollView, 
+  StyleSheet, 
+  Text, 
+  TextInput, 
+  View 
+} from "react-native";
+import { colors } from "@/constants/theme";
 
 export default function ChangePasswordScreen() {
   // The `useUser` hook gives us access to the currently logged-in user
@@ -53,47 +61,106 @@ export default function ChangePasswordScreen() {
       <Text style={styles.title}>Change Password</Text>
 
        {error ? (
-        <View style={styles.errorContainer}>
+        <View style={styles.errorBox}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : null}
 
+      <Text style={styles.label}>Current Password</Text>
       <TextInput
         value={currentPassword}
-        placeholder="Current password..."
+        placeholder="••••••••"
         secureTextEntry
         onChangeText={setCurrentPassword}
         style={styles.input}
       />
+
+      <Text style={styles.label}>New Password</Text>
       <TextInput
         value={newPassword}
-        placeholder="New password..."
+        placeholder="At least 8 characters"
         secureTextEntry
         onChangeText={setNewPassword}
         style={styles.input}
       />
+
+      <Text style={styles.label}>Confirm New Password</Text>
       <TextInput
         value={confirmPassword}
-        placeholder="Confirm new password..."
+        placeholder="Re-enter new password"
         secureTextEntry
         onChangeText={setConfirmPassword}
         style={styles.input}
       />
 
-      <Button
-        title={isLoading ? "Updating..." : "Update Password"}
+      <Pressable
+        style={[styles.button, isLoading && { opacity: 0.6 }]}
         onPress={onChangePasswordPress}
         disabled={isLoading}
-      />
+      >
+
+        <Text style={styles.buttonText}>
+          {isLoading ? "Updating..." : "Update Password"}
+        </Text>
+      </Pressable>
     </ScrollView>
   );
 }
 
 // Use similar styles...
 const styles = StyleSheet.create({
-    container: { flexGrow: 1, justifyContent: 'center', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: '#00235D'},
-    input: { borderWidth: 1, borderColor: '#005CA9', padding: 12, marginBottom: 15, borderRadius: 5, fontSize: 16 },
-    errorContainer: { backgroundColor: '#00235D', padding: 12, borderRadius: 5, marginBottom: 15 },
-    errorText: { color: '#6CADDE ', textAlign: 'center' },
+    container: { 
+      flexGrow: 1, 
+      backgroundColor: colors.white,
+      justifyContent: 'center', 
+      padding: 20 
+    },
+    title: { 
+      fontSize: 28, 
+      fontWeight: "700", 
+      textAlign: 'center', 
+      marginBottom: 28, 
+      color: colors.cuNavy},
+    label: {
+      fontSize: 14,
+      fontWeight: "600",
+      marginBottom: 6,
+      color: colors.cuNavy,
+    },
+    input: {
+      height: 48, 
+      borderWidth: 1, 
+      borderColor: colors.cuBlue, 
+      backgroundColor: colors.white,
+      paddingHorizontal: 12, 
+      marginBottom: 16, 
+      borderRadius: 8, 
+      fontSize: 15 
+    },
+    button: {
+      backgroundColor: colors.cuNavy,
+      paddingVertical: 14,
+      marginTop: 8,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    buttonText: {
+      color: colors.white,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    errorBox: { 
+      backgroundColor: "#FCE4E4", 
+      padding: 12,
+      borderRadius: 6, 
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: "#DC4C4C",
+    },
+    errorText: { 
+      color: "#992121", 
+      textAlign: "center",
+      fontSize: 14,
+      fontWeight: "500",
+    },
 });

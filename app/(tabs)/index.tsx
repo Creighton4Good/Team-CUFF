@@ -49,6 +49,7 @@ export default function HomeScreen() {
     const load = async () => {
       try {
         const data = await fetchEvents();
+        console.log("[Home] raw events from backend", data);
         setEvents(data);
       } catch (e) {
         console.error("Failed to fetch events", e);
@@ -70,8 +71,23 @@ export default function HomeScreen() {
     const now = new Date();
     const until = new Date(event.availableUntil);
 
-    // Only active + not expired
-    if (event.status?.toLowerCase() !== "active") return false;
+    const isActive =
+    !event.status || event.status.toLowerCase() === "active";
+
+    if (!isActive) {
+      return false;
+    }
+
+    if (!event.availableUntil) {
+    // if no end time, don't hide it
+    return true;
+    }
+
+    if (!event.availableUntil) {
+    // if no end time, don't hide it
+    return true;
+    }
+
     if (until < now) return false;
 
     const text = (

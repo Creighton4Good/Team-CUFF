@@ -46,7 +46,6 @@ export default function TabsLayout() {
         name="admin"
         options={{
           title: "Admin Dashboard",
-          // 👇 this is the key line:
           // when isAdmin is false, the admin tab is hidden from the tab bar
           href: isAdmin ? "/admin" : null,
         }}

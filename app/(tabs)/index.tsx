@@ -1,7 +1,15 @@
 import { useClerk, useUser as useClerkUser} from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Button, FlatList, StyleSheet, Text, View, Image } from "react-native";
+import { 
+  Button, 
+  FlatList, 
+  StyleSheet, 
+  Text, 
+  View, 
+  Image, 
+  ScrollView 
+} from "react-native";
 import { fetchEvents, deleteEvent } from "../../lib/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUser as useAppUser } from "../../hooks/UserContext";
@@ -69,23 +77,24 @@ export default function HomeScreen() {
 
   const applyPrefs = (event: Event) => {
     const now = new Date();
-    const until = new Date(event.availableUntil);
 
     const isActive =
     !event.status || event.status.toLowerCase() === "active";
 
-    if (!isActive) {
-      return false;
-    }
+    if (!isActive) return false;
 
-    if (!event.availableUntil) {
-    // if no end time, don't hide it
-    return true;
-    }
+    if (!event.availableUntil) return true;
 
-    if (!event.availableUntil) {
-    // if no end time, don't hide it
-    return true;
+    if (!event.availableUntil) return true;
+
+    const until = new Date(event.availableUntil);
+    if (!Number.isFinite(until.getTime())) {
+      console.log(
+        "[Home] bad availableUntil for event",
+        event.id,
+        event.availableUntil
+      );
+      return true;
     }
 
     if (until < now) return false;
@@ -179,51 +188,77 @@ export default function HomeScreen() {
     }
   };
 
+  const filterSummary = 
+    [
+      prefs.avoidNuts && "no nuts",
+      prefs.avoidGluten && "no gluten", 
+      prefs.avoidDairy && "no dairy",
+    ]
+      .filter(Boolean)
+      .join(", ") || "None";
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back!</Text>
-      <Text style={styles.userInfo}>
-        Hello, {clerkUser?.firstName || "User"}!
-      </Text>
-
-      {isAdmin && (
-        <Button
-          title="Post an Event"
-          onPress={() => router.push("/(tabs)/admin")}
-        />
-      )}
-
-      <View style={{ marginBottom: 12 }}>
-        <Text style={{ fontSize: 14 }}>
-          Events: {totalEvents} • Visible (after filters): {activeEventsCount} •
-          Locations: {uniqueLocations}
-        </Text>
-      </View>
-
-      <View style={{ marginBottom: 8 }}>
-        <Text style={{ fontSize: 13 }}>
-          Notifications: {" "}
-          {appUser?.notificationType ?? "Not set (update in Preferences)"}
-        </Text>
-        <Text style={{ fontSize: 13 }}>
-          Filters active:{" "}
-          {[
-            prefs.avoidNuts && "No nuts",
-            prefs.avoidGluten && "No gluten",
-            prefs.avoidDairy && "No dairy",
-          ]
-            .filter(Boolean)
-            .join(", ") || "none"}
-        </Text>
-      </View>
-
-      <Text style={{ fontSize: 18, marginBottom: 8 }}>
-        Available Food Events
-      </Text>
-
+    <View style={styles.screen}>
       <FlatList
         data={visibleEvents}
         keyExtractor={(e) => e.id.toString()}
+        ListHeaderComponent={
+          <View>
+            {/* Header / hero */}
+            <View style={styles.header}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.title}>Available food on campus</Text>
+                <Text style={styles.subtitle}>
+                  Hello, {clerkUser?.firstName || "Bluejay"} – here’s what’s
+                  currently up for grabs.
+                </Text>
+              </View>
+            </View>
+
+            {/* Stats row */}
+            <View style={styles.statRow}>
+              <View style={styles.statChip}>
+                <Text style={styles.statLabel}>Total posts</Text>
+                <Text style={styles.statValue}>{totalEvents}</Text>
+              </View>
+              <View style={styles.statChip}>
+                <Text style={styles.statLabel}>Visible now</Text>
+                <Text style={styles.statValue}>{activeEventsCount}</Text>
+              </View>
+              <View style={styles.statChip}>
+                <Text style={styles.statLabel}>Locations</Text>
+                <Text style={styles.statValue}>{uniqueLocations}</Text>
+              </View>
+            </View>
+
+            {/* Filters + admin link */}
+            <View style={styles.infoCard}>
+              <Text style={styles.infoTitle}>Your filters</Text>
+              <Text style={styles.infoText}>
+                Notifications: <Text style={styles.infoTextStrong}>Set in Preferences</Text>
+              </Text>
+              <Text style={styles.infoText}>
+                Hidden for: <Text style={styles.infoTextStrong}>{filterSummary}</Text>
+              </Text>
+
+              <Text style={styles.infoHint}>
+                Adjust what you see on the Preferences tab.
+              </Text>
+
+              {isAdmin && (
+                <View style={{ marginTop: 10 }}>
+                  <Button
+                    title="Go to Admin Dashboard"
+                    onPress={() => router.push("/(tabs)/admin")}
+                    color={colors.cuBlue}
+                  />
+                </View>
+              )}
+            </View>
+
+            <Text style={styles.sectionTitle}>Available food events</Text>
+          </View>
+        }
         renderItem={({ item }) => {
           const badges = getHighlightBadges(item);
           return (
@@ -235,8 +270,8 @@ export default function HomeScreen() {
                   resizeMode="cover"
                 />
               )}
-            
-              <View style = {styles.cardBody}>
+
+              <View style={styles.cardBody}>
                 <Text style={styles.cardTitle}>{item.title}</Text>
 
                 <Text style={styles.cardLocation}>📍 {item.location}</Text>
@@ -245,12 +280,14 @@ export default function HomeScreen() {
                 </Text>
 
                 {!!item.description && (
-                  <Text style={styles.cardDescription}>{item.description}</Text>
+                  <Text style={styles.cardDescription}>
+                    {item.description}
+                  </Text>
                 )}
                 {!!item.dietarySpecification && (
-                <Text style={styles.cardDietary}>
-                  Dietary: {item.dietarySpecification}
-                </Text>
+                  <Text style={styles.cardDietary}>
+                    Dietary: {item.dietarySpecification}
+                  </Text>
                 )}
 
                 {badges.length > 0 && (
@@ -268,6 +305,7 @@ export default function HomeScreen() {
                     <Button
                       title="Delete Event"
                       onPress={() => handleDelete(item.id)}
+                      color={colors.cuBlue}
                     />
                   </View>
                 )}
@@ -276,32 +314,106 @@ export default function HomeScreen() {
           );
         }}
         ListEmptyComponent={
-          totalEvents === 0 ? (
-            <Text>No events have been posted yet.</Text>
-          ) : (
-            <Text>
-              No events match your current filters. Try adjusting them in the
-              Preferences tab.
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>No food posted yet</Text>
+            <Text style={styles.emptyText}>
+              When campus groups share leftover food, it will appear here in
+              real time.
             </Text>
-          )
+          </View>
         }
+        contentContainerStyle={{ paddingBottom: 24 }}
       />
 
-      <View style={styles.separator} />
-      <Button title="Sign Out" onPress={() => signOut()} />
+      <View style={styles.footer}>
+        <Button title="Sign out" onPress={() => signOut()} color={colors.cuNavy} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
   container: { flex: 1, padding: 20, backgroundColor: colors.cuLightBlue, },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10, color: colors.white, },
-  userInfo: { fontSize: 18, marginBottom: 10 },
-  separator: {
-    marginVertical: 20,
-    height: 1,
-    width: "100%",
-    backgroundColor: "#eee",
+  title: { 
+    fontSize: 22, 
+    fontWeight: "700", 
+    color: colors.cuNavy, 
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: "#555",
+  },
+  statRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 12,
+    gap: 8,
+  },
+  statChip: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.cuLightGray,
+    backgroundColor: "#f6f8fc",
+  },
+  statLabel: {
+    fontSize: 11,
+    color: "#555",
+    marginBottom: 2,
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.cuNavy,
+  },
+  infoCard: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: "#eef4ff",
+    borderWidth: 1,
+    borderColor: "#d1ddff",
+  },
+  infoTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.cuNavy,
+    marginBottom: 4,
+  },
+  infoText: {
+    fontSize: 12,
+    color: "#333",
+  },
+  infoTextStrong: {
+    fontWeight: "600",
+  },
+  infoHint: {
+    fontSize: 11,
+    color: "#666",
+    marginTop: 6,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: 4,
+    marginBottom: 8,
+    paddingHorizontal: 20,
+    color: colors.cuNavy,
   },
   card: {
     backgroundColor: colors.white,
@@ -312,9 +424,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 1,
-    borderColor: colors.cuLightGray,
-    padding: 12,
+    borderColor: "#e1e4ec",
     borderRadius: 12,
+    marginHorizontal: 20,
     marginBottom: 16,
   },
   cardImage: {
@@ -328,15 +440,15 @@ const styles = StyleSheet.create({
     fontSize: 17, 
     fontWeight: "700", 
     marginBottom: 4,
-    color: colors.cuNavy, 
+    color: "#00235D", 
   },
   cardLocation: {
     fontSize: 14,
     color: "#333",
-    marginBottom: 6,
+    marginBottom: 2,
   },
   cardTime: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#333",
     marginBottom: 6,
   },
@@ -360,18 +472,41 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#0b5ed7",
+    borderColor: colors.cuBlue,
+    backgroundColor: "#eef5ff",
   },
   badgeText: {
     fontSize: 11,
-    color: "#0b5ed7",
+    color: colors.cuBlue,
     fontWeight: "500",
   },
   cardAdminRow: {
     marginTop: 10,
   },
-  subtitle: {
+  emptyCard: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e1e4ec",
+    backgroundColor: "#fafbff",
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.cuNavy,
+    marginBottom: 4,
+  },
+  emptyText: {
     fontSize: 13,
-    color: colors.cuGray,
-  }
+    color: "#555",
+  },
+  footer: {
+    borderTopWidth: 1,
+    borderTopColor: "#e1e4ec",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.white,
+  },
 });

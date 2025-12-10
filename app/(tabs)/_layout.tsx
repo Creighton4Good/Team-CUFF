@@ -1,10 +1,9 @@
 import React from "react";
-import { useTheme } from "@react-navigation/native";
 import { Tabs } from "expo-router";
 import { useUser } from "../../hooks/UserContext";
+import { colors } from "@/constants/theme";
 
 export default function TabsLayout() {
-  const { colors } = useTheme();
   const { loading, isAdmin } = useUser();
 
   console.log("[TabsLayout] loading, isAdmin =", loading, isAdmin);
@@ -16,11 +15,12 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.card },
-        headerTintColor: "#fff",
-        tabBarActiveTintColor: "#fff",
-        tabBarInactiveTintColor: "#cce0ff",
-        sceneStyle: { backgroundColor: colors.background },
+        headerStyle: { backgroundColor: colors.cuNavy },
+        headerTintColor: colors.white,
+        headerTitleStyle: { fontWeight: "700" },
+        tabBarStyle: { backgroundColor: colors.cuNavy },
+        tabBarActiveTintColor: colors.cuBlue,
+        tabBarInactiveTintColor: colors.cuLightGray,
       }}
     >
       <Tabs.Screen
@@ -30,14 +30,14 @@ export default function TabsLayout() {
           tabBarLabel: "Dashboard",
         }}
       />
-      <Tabs.Screen
+      {isAdmin && <Tabs.Screen
         name="admin"
         options={{ 
           title: "Post Event",
           tabBarLabel: "Post Event",
           href: isAdmin ? undefined : null, 
         }}
-      />
+      />}
       <Tabs.Screen
         name="preferences"
         options={{

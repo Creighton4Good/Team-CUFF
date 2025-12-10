@@ -1,11 +1,13 @@
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { Stack, usePathname, useRouter, useSegments } from "expo-router";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { Stack, usePathname, useRouter, useSegments, Tabs } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { ActivityIndicator, Text, useColorScheme, View } from "react-native";
 import { UserProvider } from "../hooks/UserContext";
+import { colors } from "@/constants/theme";
+import { useUser as useAppUser } from "@/hooks/UserContext";
 
 // This tells the splash screen to stay visible until we're ready
 SplashScreen.preventAutoHideAsync();
@@ -64,6 +66,7 @@ export const unstable_settings = { initialRouteName: "(tabs)" };
 function InitialLayout() {
   // These hooks are our main tools from Clerk and Expo Router
   const { isLoaded, isSignedIn } = useAuth(); // Clerk's hook to check auth status
+  const { isAdmin } = useAppUser();
   const segments = useSegments(); // Expo Router's hook to know where the user is
   const router = useRouter(); // Expo Router's hook to navigate the user
 
@@ -91,7 +94,9 @@ function InitialLayout() {
       inAuthGroup &&
       ["sign-in", "sign-up", "forgot-password"].includes(authScreen ?? "");
 
-    if (isSignedIn && !inTabsGroup) {
+    const isChangePasswordRoute = rootSegment === "change-password";
+
+    if (isSignedIn && !inTabsGroup && !isChangePasswordRoute) {
       // Signed in but not in the main app area → send to tabs
       router.replace("/(tabs)");
     } else if (!isSignedIn && !isOnPublicAuthRoute) {
@@ -114,9 +119,9 @@ function InitialLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor : MyTheme.colors.card },
-        headerTintColor: "#FFF",
-        contentStyle: { backgroundColor: MyTheme.colors.background },
+        headerStyle: { backgroundColor : colors.cuNavy },
+        headerTintColor: colors.white,
+        headerTitleStyle: { fontWeight: "700" },
       }}
     > 
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

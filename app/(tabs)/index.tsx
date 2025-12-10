@@ -5,6 +5,7 @@ import { Button, FlatList, StyleSheet, Text, View, Image } from "react-native";
 import { fetchEvents, deleteEvent } from "../../lib/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUser as useAppUser } from "../../hooks/UserContext";
+import { colors } from "@/constants/theme";
 
 const PREFS_KEY = "cuff_preferences";
 
@@ -277,8 +278,8 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
+  container: { flex: 1, padding: 20, backgroundColor: colors.cuLightBlue, },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10, color: colors.white, },
   userInfo: { fontSize: 18, marginBottom: 10 },
   separator: {
     marginVertical: 20,
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
   },
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.white,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 0.12,
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.cuLightGray,
     padding: 12,
     borderRadius: 12,
     marginBottom: 16,
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
     fontSize: 17, 
     fontWeight: "700", 
     marginBottom: 4,
-    color: "#00235D" 
+    color: colors.cuNavy, 
   },
   cardLocation: {
     fontSize: 14,
@@ -353,4 +354,8 @@ const styles = StyleSheet.create({
   cardAdminRow: {
     marginTop: 10,
   },
+  subtitle: {
+    fontSize: 13,
+    color: colors.cuGray,
+  }
 });

@@ -8,5 +8,6 @@ public interface NotificationService {
     void deleteNotification(Integer id);
     Notification getNotificationById(Integer id);
     List<Notification> getAllNotifications();
+    Notification sendNotification(Integer userId, String message);
 ;
 }

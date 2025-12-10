@@ -1,110 +1,69 @@
 package cuff.cuff_springboot.entity;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "User")
+@Table (name = "User")
+
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private int id;
-
-    @Column(name = "firstName", nullable = false)
     private String firstName;
-
-    @Column(name = "lastName", nullable = false)
     private String lastName;
-
-    @Column(nullable = false, unique = true) 
     private String email;
-
-    @Column(nullable = false)
     private String password;
+    private String notification_type;
 
-    @Column(name = "notification_type", nullable = false)
-    private String notificationType;
+    protected User(){}
+        public User (int id, String firstName, String lastName, String email, String password, String notification_type){
+            this.id = id;
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.email = email;
+            this.password = password;
+            this.notification_type = notification_type;
 
-    @Column(name = "dietary_preferences")
-    private String dietaryPreferences;
-
-    @Column(name = "is_admin")
-    private Boolean isAdmin = false; //default set to false
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    protected User() {}
-
-    public User(String firstName, String lastName, String email, String password,
-                String notificationType, String dietaryPreferences, Boolean isAdmin) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-        this.notificationType = notificationType;
-        this.dietaryPreferences = dietaryPreferences;
-        this.isAdmin = isAdmin;
-    }
-
-    public int getId() {
+}
+public int getId() {
         return id;
     }
-
+    public void setId(int id) {
+        this.id = id;
+    }
     public String getFirstName() {
         return firstName;
     }
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
-
     public String getLastName() {
         return lastName;
     }
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
-
     public String getEmail() {
         return email;
     }
     public void setEmail(String email) {
         this.email = email;
     }
-
     public String getPassword() {
         return password;
     }
     public void setPassword(String password) {
         this.password = password;
     }
-
-    public String getNotificationType() {
-        return notificationType;
+    public String getNotification_type() {
+        return notification_type;
     }
-    public void setNotificationType(String notificationType) {
-        this.notificationType = notificationType;
+    public void setNotification_type(String notification_type) {
+        this.notification_type = notification_type;
     }
-
-    public String getDietaryPreferences() {
-        return dietaryPreferences;
-    }
-    public void setDietaryPreferences(String dietaryPreferences) {
-        this.dietaryPreferences = dietaryPreferences;
-    }
-
-    public Boolean getIsAdmin() {
-        return isAdmin;
-    }
-    public void setIsAdmin(Boolean isAdmin) {
-        this.isAdmin = isAdmin;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
 }
+
+

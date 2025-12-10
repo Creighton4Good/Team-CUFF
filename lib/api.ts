@@ -1,23 +1,34 @@
-export type EventPayload = {
+import { Platform } from "react-native";
+
+export type Event = {
+  id: number;
+  userId: number;
   title: string;
   location: string;
-  description: string;
+  description?: string;
   dietarySpecification?: string;
-  availableFrom: string;
-  availableUntil: string;
+  availableFrom: string; // ISO string from backend
+  availableUntil: string; // ISO string from backend
   imageUrl?: string;
-  userId: number;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
-// Base is just host + port
-const API_BASE_URL = "http://10.98.20.160:8080";
+// What we send when creating a new event/post
+export type NewEvent = Omit<Event, "id" | "createdAt" | "updatedAt">;
 
-// GET /api/posts
-export async function fetchEvents() {
-  const url = `${API_BASE_URL}/api/posts`;
-  console.log("fetchEvents ->", url);
+const BASE_URL = "http://192.168.1.223:8080";
+/*
+Platform.OS === "android"
+    ? "http://10.0.2.2:8080" // Android emulator
+    : "http://localhost:8080"; // iOS simulator
+*/
 
-  const res = await fetch(url);
+const POSTS_URL = `${BASE_URL}/api/posts`;
+
+export async function fetchEvents(): Promise<Event[]> {
+  const res = await fetch(POSTS_URL);
   if (!res.ok) {
     const text = await res.text();
     console.error("Failed to fetch events", res.status, text);
@@ -26,49 +37,19 @@ export async function fetchEvents() {
   return res.json();
 }
 
-// POST /api/posts
-export async function createEvent(payload: EventPayload) {
-  const url = `${API_BASE_URL}/api/posts`;
-  console.log("createEvent ->", url, payload);
-
-  const res = await fetch(url, {
+export async function createEvent(event: NewEvent): Promise<Event> {
+  const res = await fetch(POSTS_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(event),
   });
 
   if (!res.ok) {
     const text = await res.text();
     console.error("Failed to create event", res.status, text);
     throw new Error("Failed to create event");
-  }
-
-  return res.json();
-}
-
-// DELETE /api/posts/{id}
-export async function deleteEvent(id: number): Promise<void> {
-    const url = `${API_BASE_URL}/api/posts/${id}`;
-    console.log("deleteEvent ->", url);
-
-    const res = await fetch(url, {
-        method: "DELETE",
-    });
-
-    if (!res.ok) {
-        const text = await res.text();
-        console.error("Failed to delete event", res.status, text);
-        throw new Error("Failed to delete event");
-    }
-}
-
-export async function fetchUserById(id: number) {
-  const res = await fetch(`${API_BASE_URL}/api/users/${id}`);
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("Failed to fetch user", res.status, text);
-    throw new Error("Failed to fetch user");
   }
 
   return res.json();

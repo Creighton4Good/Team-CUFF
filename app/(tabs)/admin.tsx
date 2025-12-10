@@ -2,140 +2,73 @@ import React, { useState } from "react";
 import {
   Alert,
   Button,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { createEvent } from "@/lib/api";
+import { createEvent, NewEvent } from "@/lib/api";
 import { useUser } from "@clerk/clerk-expo";
 
 export default function AdminPost() {
   const { user } = useUser();
-
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [dietarySpecification, setDietarySpecification] = useState("");
-
-  // Dates are Date objects instead of strings
-  const [availableFrom, setAvailableFrom] = useState<Date | null>(null);
-  const [availableUntil, setAvailableUntil] = useState<Date | null>(null);
-  const [showFromPicker, setShowFromPicker] = useState(false);
-  const [showUntilPicker, setShowUntilPicker] = useState(false);
-
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [availableFrom, setAvailableFrom] = useState("");
+  const [availableUntil, setAvailableUntil] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const formatDateTime = (date: Date | null) => {
-    if (!date) return "";
-    return date.toLocaleString([], {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
-  };
-
-  const toLocalIsoString = (date: Date): string => {
-    const pad = (n: number) => n.toString().padStart(2, "0");
-
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1); // 0-based
-    const day = pad(date.getDate());
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-    const seconds = pad(date.getSeconds());
-
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-  };
-
-  const pickFromLibrary = async () => {
-    const { status } =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission needed",
-        "We need access to your photos to attach an image."
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.7,
-    });
-
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
-
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission needed",
-        "We need camera access so you can take a picture."
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 0.7,
-    });
-
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
+  console.log("AdminPost screen rendered");
 
   const handleSubmit = async () => {
+    console.log("Post Food Event button pressed");
     if (!title.trim()) {
-    Alert.alert("Missing title", "Please enter a title for the post.");
+      Alert.alert("Missing title", "Please enter a title for the post.");
+      return;
+    }
+
+    if (!location.trim()) {
+    Alert.alert("Missing location", "Please enter a location for the post.");
     return;
     }
-    if (!availableFrom || !availableUntil) {
+
+    if (!availableFrom.trim() || !availableUntil.trim()) {
       Alert.alert(
-        "Missing time",
-        "Please pick both a start and end time for the event."
+        "Missing availability",
+        "Please enter both start and end times."
       );
       return;
     }
+
+   // TEMP: hard-coded user id until we wire real users
+    const userId = 1;
+
+    const payload: NewEvent = {
+      userId,
+      title: title.trim(),
+      location: location.trim(),                    // required
+      description: description.trim() || "",        // optional
+      dietarySpecification: dietarySpecification.trim() || "",
+      availableFrom: availableFrom.trim(),          // required ISO string
+      availableUntil: availableUntil.trim(),        // required ISO string
+      imageUrl: "",                                 // optional
+      status: "active",
+    };
 
     setSubmitting(true);
     try {
-      const availableFromIso = toLocalIsoString(availableFrom);
-      const availableUntilIso = toLocalIsoString(availableUntil);
-
-      const ADMIN_USER_ID = 1;
-
-      await createEvent({
-        title: title.trim(),
-        location: location.trim(),
-        description: description.trim(),
-        dietarySpecification: dietarySpecification.trim(),
-        availableFrom: availableFromIso,
-        availableUntil: availableUntilIso,
-        imageUrl: imageUri ?? undefined, // send URI as imageUrl
-        userId: ADMIN_USER_ID,
-      });
-
+      await createEvent(payload);
       Alert.alert("Success", "Post created successfully!");
+      
       setTitle("");
       setLocation("");
       setDescription("");
       setDietarySpecification("");
-      setAvailableFrom(null);
-      setAvailableUntil(null);
-      setImageUri(null);
+      setAvailableFrom("");
+      setAvailableUntil("");
     } catch (err: any) {
       console.error("Error creating event:", err);
       Alert.alert(
@@ -148,127 +81,64 @@ export default function AdminPost() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={80}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.bigText}>Create Food Post</Text>
-        <Text style={styles.subText}>
-          Logged in as: {user?.primaryEmailAddress?.emailAddress ?? "Unknown"}
-        </Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.bigText}>Create Food Post</Text>
+      <Text style={styles.subText}>
+        Logged in as: {user?.primaryEmailAddress?.emailAddress ?? "Unknown"}
+      </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Title *"
-          placeholderTextColor="#999"
-          value={title}
-          onChangeText={setTitle}
+      <TextInput
+        style={styles.input}
+        placeholder="Title *"
+        placeholderTextColor="#999"
+        value={title}
+        onChangeText={setTitle}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Location"
+        placeholderTextColor="#999"
+        value={location}
+        onChangeText={setLocation}
+      />
+      <TextInput
+        style={[styles.input, styles.multiline]}
+        placeholder="Description"
+        placeholderTextColor="#999"
+        value={description}
+        onChangeText={setDescription}
+        multiline
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Dietary specification (e.g., vegan, gluten-free)"
+        placeholderTextColor="#999"
+        value={dietarySpecification}
+        onChangeText={setDietarySpecification}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder='Available from (e.g. 12/6/25 2:30PM)'
+        placeholderTextColor="#999"
+        value={availableFrom}
+        onChangeText={setAvailableFrom}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder='Available until (e.g. 12/6/25 4:00PM)'
+        placeholderTextColor="#999"
+        value={availableUntil}
+        onChangeText={setAvailableUntil}
+      />
+
+      <View style={{ marginTop: 16 }}>
+        <Button
+          title={submitting ? "Posting..." : "Post Food Event"}
+          onPress={handleSubmit}
+          disabled={submitting}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Location"
-          placeholderTextColor="#999"
-          value={location}
-          onChangeText={setLocation}
-        />
-        <TextInput
-          style={[styles.input, styles.multiline]}
-          placeholder="Description"
-          placeholderTextColor="#999"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Dietary specification (e.g., 'vegan option, vegetarian, gluten-free, contains nutes')"
-          placeholderTextColor="#999"
-          value={dietarySpecification}
-          onChangeText={setDietarySpecification}
-        />
-      
-        <Text style={{ marginTop: 8, marginBottom: 4, fontWeight: "600" }}>
-          Add a photo (optional)
-        </Text>
-        <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
-          <View style={{ flex: 1 }}>
-            <Button title="Take Photo" onPress={takePhoto} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Button title="Choose from Library" onPress={pickFromLibrary} />
-          </View>
-        </View>
-
-        {imageUri && (
-         <View style={{ marginBottom: 12, alignItems: "center" }}>
-            <Image
-              source={{ uri: imageUri }}
-              style={{ width: "100%", height: 180, borderRadius: 8 }}
-              resizeMode="cover"
-            />
-            <Text style={{ fontSize: 12, color: "#555", marginTop: 4 }}>
-              This image will be attached to the event.
-            </Text>
-          </View>
-        )}
-
-        <Pressable
-          style={styles.input}
-          onPress={() => setShowFromPicker(true)}
-        >
-          <Text style={{ color: availableFrom ? "#000" : "#999" }}>
-            {availableFrom
-              ? `Available from: ${formatDateTime(availableFrom)}`
-              : "Available from (tap to pick date & time)"}
-          </Text>
-        </Pressable>
-
-        <Pressable
-          style={styles.input}
-          onPress={() => setShowUntilPicker(true)}
-        >
-          <Text style={{ color: availableUntil ? "#000" : "#999" }}>
-            {availableUntil
-              ? `Available until: ${formatDateTime(availableUntil)}`
-              : "Available until (tap to pick date & time)"}
-          </Text>
-        </Pressable>
-
-        {showFromPicker && (
-          <DateTimePicker
-            value={availableFrom || new Date()}
-            mode="datetime"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(_, date) => {
-              setShowFromPicker(false);
-              if (date) setAvailableFrom(date);
-            }}
-          />
-        )}
-
-        {showUntilPicker && (
-          <DateTimePicker
-            value={availableUntil || new Date()}
-            mode="datetime"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(_, date) => {
-              setShowUntilPicker(false);
-              if (date) setAvailableUntil(date);
-            }}
-          />
-        )}
-
-        <View style={{ marginTop: 16 }}>
-          <Button
-            title={submitting ? "Posting..." : "Post Food Event"}
-            onPress={handleSubmit}
-            disabled={submitting}
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </ScrollView>
   );
 }
 

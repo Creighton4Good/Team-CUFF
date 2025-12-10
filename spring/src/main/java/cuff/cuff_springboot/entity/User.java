@@ -113,4 +113,13 @@ public class User {
     public void setIsAdmin(Boolean isAdmin) {
         this.isAdmin = isAdmin;
     }
+    public boolean isNotificationsEnabled() {
+    return notificationsEnabled;
+}
+    public void setNotificationsEnabled(boolean notificationsEnabled) {
+    this.notificationsEnabled = notificationsEnabled;
+}
+
+
+
 }

@@ -1,3 +1,8 @@
+/**
+ * Tab layout for the main CUFF app.
+ * Uses UserContext to optionally expose an admin-only tab.
+ */
+
 import React from "react";
 import { Tabs } from "expo-router";
 import { useUser as useAppUser } from "../../hooks/UserContext";
@@ -6,12 +11,13 @@ import { ActivityIndicator, View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function TabsLayout() {
+  // Read user role + loading state from app-level user context
   const { isAdmin, loading } = useAppUser();
 
   console.log("[TabsLayout] isAdmin =", isAdmin, "loading =", loading);
 
+  // While user info is loading, block navigation behind a simple splash
   if (loading) {
-    // While we don't know yet, show a simple loading view
     return (
       <View 
         style={{ 
@@ -35,6 +41,7 @@ export default function TabsLayout() {
     );
   }
 
+  // Shared styling options for all tabs
   const commonOptions = {
     headerStyle: { backgroundColor: colors.cuNavy },
     headerTintColor: colors.white,
@@ -53,7 +60,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs screenOptions={commonOptions}>
-
+      {/* Default tab: user-facing leftover food dashboard */}
       <Tabs.Screen
         name="index"
         options={{
@@ -65,6 +72,7 @@ export default function TabsLayout() {
         }}
       />
 
+      {/* User preferences for notifications and dietary filters */}
       <Tabs.Screen
         name="preferences"
         options={{
@@ -76,6 +84,7 @@ export default function TabsLayout() {
         }}
       />
 
+        {/* Admin-only tab, hidden when the user is not an admin */}
       <Tabs.Screen
         name="admin"
         options={{
@@ -88,7 +97,7 @@ export default function TabsLayout() {
               size={size ?? 22}
             />
           ),
-          // when isAdmin is false, the admin tab is hidden from the tab bar
+          // When isAdmin is false, this route is not accessible from the tab bar
           href: isAdmin ? "/admin" : null,
         }}
       />

@@ -1,3 +1,11 @@
+/**
+ * CUFF Preferences screen.
+ * – Lets users choose notification method (for future contact)
+ * – Lets users highlight preferred dietary options
+ * – Lets users hide events with certain allergens
+ * – Syncs settings to AsyncStorage and backend User profile
+ */
+
 import React, { useEffect, useState } from "react";
 import { 
     View, 
@@ -32,6 +40,7 @@ export default function PreferencesScreen() {
   const router = useRouter();
     const { user, loading: userLoading, setUser } = useUser();
 
+    // Local dietary preferences toggles
   const [prefs, setPrefs] = useState<Preferences>({
     highlightVeg: false,
     highlightVegan: false,
@@ -39,10 +48,14 @@ export default function PreferencesScreen() {
     avoidGluten: false,
     avoidDairy: false,
   });
+
+  // Preferred contact method for future CUFF notifications
   const [notificationType, setNotificationType] =
     useState<NotificationType>("Both");
+
   const [loading, setLoading] = useState(false);
 
+  // 1) Initialize from device storage (AsyncStorage) on mount
   useEffect(() => {
     const loadLocalPrefs = async () => {
       try {
@@ -75,7 +88,7 @@ export default function PreferencesScreen() {
     loadLocalPrefs();
   }, []);
 
-  // 2) Once user is loaded, initialize from server values
+  // 2) Once user is loaded, merge in backend values
   useEffect(() => {
     if (userLoading) return;
     if (!user) return;
@@ -110,6 +123,12 @@ export default function PreferencesScreen() {
     }
   }, [userLoading, user]);
 
+  /**
+   * Persist changes:
+   * – Update local state
+   * – Save to AsyncStorage
+   * – Sync to backend if user exists 
+   */
   const persist = async (nextPrefs: Preferences, nextType: NotificationType) => {
     setPrefs(nextPrefs);
     setNotificationType(nextType);
@@ -137,11 +156,13 @@ export default function PreferencesScreen() {
     }
   };
 
+  // Convenience helper for updating a subset of dietary prefs
   const update = async (partial: Partial<Preferences>) => {
     const next = { ...prefs, ...partial };
     await persist(next, notificationType);
   };
 
+  // Change notification method and persist immediately
   const changeNotificationType = (type: NotificationType) => {
     persist(prefs, type);
   };
@@ -157,6 +178,7 @@ export default function PreferencesScreen() {
         contacted when new food is posted.
       </Text>
 
+    {/* Notification preferences */}
     <View style={styles.card}>
         <Text style={styles.cardTitle}>Notification method</Text>
         <Text style={styles.cardDescription}>
@@ -190,6 +212,7 @@ export default function PreferencesScreen() {
         </View>
     </View>
 
+    {/* Highlight options the user likes */}
     <View style={styles.card}>
         <Text style={styles.cardTitle}>Highlight options I like</Text>
         <Text style={styles.cardDescription}>
@@ -212,6 +235,7 @@ export default function PreferencesScreen() {
         />
     </View>
 
+    {/* Allergen-based hiding rules */}
     <View style={styles.card}>
         <Text style={styles.cardTitle}>Hide events with allergens I avoid</Text>
         <Text style={styles.cardDescription}>
@@ -241,6 +265,7 @@ export default function PreferencesScreen() {
       />
     </View>
     
+    {/* Account-level settings */}
     <View style={styles.card}>
         <Text style={styles.cardTitle}>Account</Text>
         <Text style={styles.cardDescription}>
@@ -265,6 +290,7 @@ type RowProps = {
   onValueChange: (v: boolean) => void;
 };
 
+// Reusable row for a labeled toggle + description
 function Row({ title, description, value, onValueChange }: RowProps) {
   return (
     <View style={styles.row}>

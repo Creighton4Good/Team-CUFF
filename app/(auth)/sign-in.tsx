@@ -1,3 +1,8 @@
+/**
+ * Sign-in screen for CUFF. Uses Clerk to authenticate with Creighton email
+ * and routes users into the main tab navigator on success.
+ */
+
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -14,41 +19,42 @@ import {
 import { colors } from "@/constants/theme";
 
 export default function SignInScreen() {
-  // Clerk's hook for handling the sign-in process
+  // Clerk hook for sign-in and session management
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
 
-  // State variables to hold the user's input and manage UI state
+  // Local form + UI state
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // This function is called when the user presses the "Sign In" button
+  // Primary handler for "Sign in" button
   const onSignInPress = async () => {
-    if (!isLoaded) return; // Wait for Clerk to be ready
+    if (!isLoaded) return; // Ensure Clerk is ready
 
     setError("");
     setIsLoading(true);
 
     try {
-      // Start the sign-in process with Clerk
+      // Ask Clerk to create a sign-in attempt with the given credentials
       const signInAttempt = await signIn.create({
         identifier: emailAddress,
         password,
       });
 
-      // If sign-in is complete, we set the session as active
+      // If Clerk marks this as complete, we can activate the session
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
-        // And navigate the user to the main part of the app
+        
+        // Send the user into the main app flow
         router.replace("/(tabs)");
       } else {
-        // This can happen in multi-factor auth flows
+        // Non-complete states can occur with more complex auth flows
         setError("Sign-in incomplete. Please try again.");
       }
     } catch (err: any) {
-      // This is our error handling. We can show a friendly message.
+      // Prefer Clerk's longMessage, then fall back to a generic message
       const errorMessage =
         err.errors?.[0]?.longMessage || 
         "An error occurred. Please try again.";
@@ -58,6 +64,7 @@ export default function SignInScreen() {
     }
   };
 
+  // While Clerk is initializing, show a simple loading UI
   if (!isLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -67,6 +74,7 @@ export default function SignInScreen() {
     );
   }
 
+  // Disable sign-in when busy or required fields are empty
   const signInDisabled =
     isLoading || !emailAddress.trim() || !password.trim();
 
@@ -142,6 +150,7 @@ export default function SignInScreen() {
   );
 }
 
+// Presentational styles for the sign-in screen
 const styles = StyleSheet.create({
   root: {
     flex: 1,

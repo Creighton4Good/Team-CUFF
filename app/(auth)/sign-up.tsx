@@ -1,3 +1,11 @@
+/**
+ * Multi-stage sign-up flow for CUFF using Clerk.
+ * Stages:
+ * 1) "form"    – collect user details + notification preference
+ * 2) "confirm" - review entered data before creating the account
+ * 3) "verify"  - enter email verification code and complete sign-up
+ */
+
 import { useSignUp } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
@@ -19,24 +27,26 @@ type NotificationPref = "push" | "email" | "both";
 type Stage = "form" | "confirm" | "verify";
 
 export default function SignUpScreen() {
+  // Clerk hook for sign-up and session management
   const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
 
-  // State for user inputs
+  // User identity fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
 
-  // State for preferences
+  // Notification preference for CUFF (persisted after verification)
   const [notif, setNotif] = useState<NotificationPref>("push");
 
-  // State for the verification flow
+  // Multi-step flow + verification code and UI state
   const [stage, setStage] = useState<Stage>("form");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Move from the "form" step to the "confirm" step after basic validation
   const onReviewAndConfirm = () => {
     if (!firstName || !lastName || !emailAddress || !password) {
       setError("Please complete all fields before continuing.");
@@ -46,14 +56,14 @@ export default function SignUpScreen() {
     setStage("confirm");
   };
 
-  // Step 1: Create the user account
+  // Step 1: Create the user account and send a verification code
   const onSignUpPress = async () => {
     if (!isLoaded) return;
     setError("");
     setIsLoading(true);
 
     try {
-      // Create the user with Clerk
+      // Create the account in Clerk with the provided details
       await signUp.create({
         emailAddress,
         password,
@@ -61,12 +71,12 @@ export default function SignUpScreen() {
         lastName,
       });
 
-      // Send the verification email
+      // Trigger an email verification code to the user
       await signUp.prepareEmailAddressVerification({ 
         strategy: "email_code" 
       });
 
-      // Move to the verification screen
+      // Switch UI to the "verify" step
       setStage("verify");
     } catch (err: any) {
       const errorMessage =
@@ -77,7 +87,7 @@ export default function SignUpScreen() {
     }
   };
 
-  // Step 2: Verify the email code
+  // Step 2: Verify the email code and finalize account + preferences
   const onPressVerify = async () => {
     if (!isLoaded) return;
     setError("");
@@ -90,13 +100,14 @@ export default function SignUpScreen() {
       });
 
       if (signUpAttempt.status === "complete") {
-        // If successful, set the session active and navigate
+        // Activate the new session
         await setActive({ session: signUpAttempt.createdSessionId });
+
+        // Persist notification preferences for later use in the app
+        await AsyncStorage.setItem("@prefs", JSON.stringify({ notif }));
+
+        // Navigate into the main app flow
         router.replace("/(tabs)");
-        await AsyncStorage.setItem(
-          "@prefs",
-          JSON.stringify({ notif })
-        );
       } else {
         setError("Verification incomplete. Please try again.");
       }
@@ -109,6 +120,7 @@ export default function SignUpScreen() {
     }
   };
 
+  // While Clerk is initializing, show a simple loading state
   if (!isLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -118,6 +130,7 @@ export default function SignUpScreen() {
     );
   }
 
+  // Disable continue buttons if we're busy or required fields are empty
   const formDisabled =
     isLoading ||
     !firstName.trim() ||
@@ -202,6 +215,8 @@ export default function SignUpScreen() {
                   <Text style={styles.sectionHint}>
                     You can change this later in Preferences.
                   </Text>
+
+                  {/* Simple chip-style selector for notification preference */}
                   <View style={styles.chipRow}>
                     {(["push", "email", "both"] as NotificationPref[]).map(
                       (option) => {
@@ -310,6 +325,7 @@ export default function SignUpScreen() {
               )}
             </>
           ) : (
+            // "verify" stage: user enters their 6-digit email code
             <>
               <Text style={styles.title}>Verify your email</Text>
               <Text style={styles.subtitle}>
@@ -354,6 +370,7 @@ export default function SignUpScreen() {
   );
 }
 
+// Presentational styles for the sign-up screen
 const styles = StyleSheet.create({
   root: {
     flex: 1,

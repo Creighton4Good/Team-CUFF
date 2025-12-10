@@ -1,3 +1,9 @@
+/**
+ * Main CUFF dashboard (tab "Dashboard").
+ * Shows available leftover food events, applies user dietary filters,
+ * and gives a light overview (counts, locations, etc.).
+ */
+
 import { useClerk, useUser as useClerkUser} from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -41,10 +47,12 @@ export default function HomeScreen() {
   const { user: clerkUser } = useClerkUser();
   const router = useRouter();
   const { signOut } = useClerk();
-  
   const { isAdmin, user: appUser } = useAppUser();
 
+  // Raw events from backend, before filtering
   const [events, setEvents] = useState<Event[]>([]);
+
+  // Local bopy of user's dietary/highlighting preferences
   const [prefs, setPrefs] = useState<Preferences>({
     highlightVeg: false,
     highlightVegan: false,
@@ -53,6 +61,7 @@ export default function HomeScreen() {
     avoidDairy: false,
   });
 
+  // Load events + stored preferences once on mount
   useEffect(() => {
     const load = async () => {
       try {
@@ -75,6 +84,10 @@ export default function HomeScreen() {
     load();
   }, []);
 
+  /**
+   * Returns true if an event should be shown based on status, time window,
+   * and current dietary "avoid" preferences.
+   */
   const applyPrefs = (event: Event) => {
     const now = new Date();
 
@@ -83,8 +96,7 @@ export default function HomeScreen() {
 
     if (!isActive) return false;
 
-    if (!event.availableUntil) return true;
-
+    // If we don't have an end time, optimistically show it 
     if (!event.availableUntil) return true;
 
     const until = new Date(event.availableUntil);
@@ -97,8 +109,10 @@ export default function HomeScreen() {
       return true;
     }
 
+    // Hide events that are already over
     if (until < now) return false;
 
+    // Combine description + dietary notes for keyword checks
     const text = (
       (event.description ?? "") +
       " " +
@@ -121,13 +135,13 @@ export default function HomeScreen() {
       const safe =
         has("dairy-free") ||
         has("no dairy") ||
-        has("vegan"); // vegan implies dairy-free
+        has("vegan");
       if (!safe && (has("dairy") || has("cheese") || has("milk"))) {
         return false;
       }
     }
 
-    // Nuts logic
+    // Nuts logic: allow "nut-free" / "no nuts", hide other "nuts"
     if (prefs.avoidNuts) {
       const safe = has("nut-free") || has("no nuts");
       if (!safe && has("nuts")) {
@@ -138,6 +152,7 @@ export default function HomeScreen() {
     return true;
   };
 
+  // Apply filters + sort visible events by start time
   const visibleEvents = events
     .filter(applyPrefs)
     .sort(
@@ -146,6 +161,7 @@ export default function HomeScreen() {
         new Date(b.availableFrom).getTime()
     );
 
+  // Compact "3:00 PM – 4:30 PM" string for each event
   const formatRange = (from: string, until: string) => {
     const start = new Date(from);
     const end = new Date(until);
@@ -158,10 +174,12 @@ export default function HomeScreen() {
     })}`;
   };
 
+  // Simple high-level stats for header chips
   const totalEvents = events.length;
   const activeEventsCount = visibleEvents.length;
   const uniqueLocations = new Set(events.map((e) => e.location)).size;
 
+  // Build badges for events that match "highlight" prefs
   const getHighlightBadges = (event: Event) => {
     const text = (
       (event.description ?? "") +
@@ -179,6 +197,7 @@ export default function HomeScreen() {
     return badges;
   };
 
+  // Admin-only delete handler (updates local list after backend delete)
   const handleDelete = async (id: number) => {
     try {
       await deleteEvent(id);
@@ -188,6 +207,7 @@ export default function HomeScreen() {
     }
   };
 
+  // Human-readable summary of current "avoid" settings
   const filterSummary = 
     [
       prefs.avoidNuts && "no nuts",
@@ -231,7 +251,7 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* Filters + admin link */}
+            {/* Filters + admin shortcut */}
             <View style={styles.infoCard}>
               <Text style={styles.infoTitle}>Your filters</Text>
               <Text style={styles.infoText}>
@@ -325,6 +345,7 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingBottom: 24 }}
       />
 
+        {/* Sticky footer sign-out button */}
       <View style={styles.footer}>
         <Button title="Sign out" onPress={() => signOut()} color={colors.cuNavy} />
       </View>

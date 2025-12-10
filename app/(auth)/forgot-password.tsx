@@ -1,3 +1,9 @@
+/**
+ * Screen for handling the two-stage "forgot password" flow using Clerk:
+ * 1) Request a reset email code
+ * 2) Submit the code + new password to complete the reset
+ */
+
 import { useSignIn } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -14,12 +20,14 @@ import {
 } from "react-native";
 import { colors } from "@/constants/theme";
 
+// Represents which step of the reset flow we're in
 type Stage = "request" | "reset";
 
 export default function ForgotPassword() {
   const { isLoaded, signIn, setActive } = useSignIn();
   const router = useRouter();
 
+  // Local form state
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -27,15 +35,16 @@ export default function ForgotPassword() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // Step 1: send a reset email code via Clerk
   const requestReset = async () => {
     if (!isLoaded || !signIn) return;
     setError("");
     setBusy(true);
     try {
-      // 1) Start a sign-in for this identifier (email)
+      // Start a sign-in attempt with the provided email
       await signIn.create({ identifier: email });
 
-      // 2) Find the reset factor and extract the emailAddressId
+      // Find the factor that supports "reset password via email code"
       const emailFactor = (signIn.supportedFirstFactors ?? []).find(
         (f: any) => 
           f.strategy === "reset_password_email_code" && f.emailAddressId
@@ -51,14 +60,16 @@ export default function ForgotPassword() {
         );
       }
 
-      // 3) Prepare the first factor with BOTH strategy and emailAddressId (fixes TS error)
+      // Prepare that factor so Clerk sends the one-time code email
       await signIn.prepareFirstFactor({
         strategy: "reset_password_email_code",
         emailAddressId: emailFactor.emailAddressId,
       });
 
+      // Move UI to the "enter code + new password" step
       setStage("reset");
     } catch (e: any) {
+      // Prefer Clerk's longMessage, then generic message, then fallback
       setError(e?.errors?.[0]?.longMessage ?? 
         e?.message ?? "Unable to send reset email."
       );
@@ -67,6 +78,7 @@ export default function ForgotPassword() {
     }
   };
 
+  // Step 2: verify the code and set the new password
   const reset = async () => {
     if (!isLoaded || !signIn) return;
     setError("");
@@ -79,11 +91,13 @@ export default function ForgotPassword() {
       });
 
       if (attempt.status === "complete") {
-        // Optional: activate the session or route back to sign-in
+        // Optionally activate the session and redirect to sign-in (or main app)
         await setActive?.({ session: attempt.createdSessionId });
-        router.replace("/(auth)/sign-in"); // or "/(tabs)" if you prefer auto-login after reset
+        router.replace("/(auth)/sign-in"); // Change to "/(tabs)" if you want auto-login after reset
         return;
       }
+
+      // If Clerk didn't mark the attempt "complete", something is still wrong
       setError("Reset not complete. Double-check the code and try again.");
     } catch (e: any) {
       setError(
@@ -94,6 +108,7 @@ export default function ForgotPassword() {
     }
   };
 
+  // While Clerk is initializing, show a simple loading state
   if (!isLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -103,7 +118,10 @@ export default function ForgotPassword() {
     );
   }
 
+  // Choose the primary action based on the current stage
   const onPrimaryPress = stage === "request" ? requestReset : reset;
+  
+  // Disable primary button when we're busy or required fields are empty
   const primaryDisabled =
     busy ||
     (stage === "request" ? !email.trim() : !code.trim() || !newPassword.trim());
@@ -203,6 +221,7 @@ export default function ForgotPassword() {
   );
 }
 
+// Presentational styles for the screen
 const styles = StyleSheet.create({
   root: {
     flex: 1,

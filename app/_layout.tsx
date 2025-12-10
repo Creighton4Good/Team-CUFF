@@ -1,3 +1,8 @@
+/**
+ * Root app layout for CUFF.
+ * – Wires up Clerk auth, navigation theme, and UserContext
+ * – Controls which route groups are accessible based on auth state
+ */
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack, usePathname, useRouter, useSegments } from "expo-router";
@@ -8,13 +13,12 @@ import { ActivityIndicator, Text, View } from "react-native";
 import { UserProvider } from "../hooks/UserContext";
 import { colors } from "@/constants/theme";
 
-// This tells the splash screen to stay visible until we're ready
+// Keep splash screen visible until Clerk and routing are ready
 SplashScreen.preventAutoHideAsync();
 
-/*
- * We need a secure place to store the user's session token.
- * `expo-secure-store` is perfect because it encrypts the data on the device.
- * This little object tells Clerk how to save and retrieve that token.
+/**
+ * Minimal key/value token cache for Clerk using expo-secure-store.
+ * Stores the session token in encrypted device storage.
  */
 const tokenCache = {
   async getToken(key: string) {
@@ -40,6 +44,7 @@ if (!CLERK_PUBLISHABLE_KEY) {
   );
 }
 
+// Navigation theme aligned with CUFF brand colors
 const MyTheme = {
   ...DefaultTheme,
   colors: {
@@ -53,33 +58,33 @@ const MyTheme = {
   }
 }; 
 
-// These are just some nice-to-haves from Expo Router
+// Standard Expo Router exports
 export { ErrorBoundary } from "expo-router";
 export const unstable_settings = { initialRouteName: "(tabs)" };
 
 /**
- * This is our main layout component. It's the "bouncer" for our app,
- * deciding who gets to go where based on their login status.
+ * Top-level layout responsible for:
+ * – Hiding the splash screen when auth is ready
+ * – Redirecting based on signed-in state and route group
  */
 function InitialLayout() {
-  // These hooks are our main tools from Clerk and Expo Router
-  const { isLoaded, isSignedIn } = useAuth(); // Clerk's hook to check auth status
+  const { isLoaded, isSignedIn } = useAuth();
   const pathname = usePathname();
-  const segments = useSegments(); // Expo Router's hook to know where the user is
-  const router = useRouter(); // Expo Router's hook to navigate the user
+  const segments = useSegments();
+  const router = useRouter();
 
-  // This effect hides the splash screen once Clerk has loaded
+  // Hide splash screen once Clerk has initialized
   useEffect(() => {
     if (isLoaded) {
       SplashScreen.hideAsync();
     }
   }, [isLoaded]);
 
-  // This is the core logic that handles our routing!
+  // Code auth-based routing logic
   useEffect(() => {
     if (!isLoaded || !pathname) return;
 
-    // segments is like ["(tabs)", "admin"] or ["(auth)", "sign-in"]
+    // segments example: ["(tabs)", "admin"] or ["(auth)", "sign-in"]
     const rootSegment = segments[0] as string | undefined;
 
     const inTabsGroup = rootSegment === "(tabs)";
@@ -93,15 +98,15 @@ function InitialLayout() {
     const isChangePasswordRoute = rootSegment === "change-password";
 
     if (isSignedIn && !inTabsGroup && !isChangePasswordRoute) {
-      // Signed in but not in the main app area → send to tabs
+      // Signed in but not in the main app area -> send to tabs
       router.replace("/(tabs)");
     } else if (!isSignedIn && !isOnPublicAuthRoute) {
-      // Not signed in → force to sign-in
+      // Not signed in -> force to sign-in
       router.replace("/sign-in");
     }
   }, [isLoaded, isSignedIn, segments, pathname, router]);
 
-  // While Clerk is loading, we'll show a simple loading spinner
+  // Loading shell shown while Clerk initializes
   if (!isLoaded) {
     return (
       <View 
@@ -141,7 +146,7 @@ function InitialLayout() {
     );
   }
 
-  // Once loaded, we define our app's screens
+  // Once auth is ready, define the top-level navigator
   return (
     <Stack
       screenOptions={{
@@ -150,9 +155,13 @@ function InitialLayout() {
         headerTitleStyle: { fontWeight: "700" },
       }}
     > 
+      {/* Main authenticated app (tabs: Dashboard, Preferences, Admin) */}
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      {/* Public auth flow (sign-in, sign-up, forgot-password) */}
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      {/* Generic modal route if needed */}
       <Stack.Screen name="modal" options={{ presentation: "modal" }}/>
+      {/* Standalone change password screen (accessible while signed in) */}
       <Stack.Screen
         name="change-password"
         options={{
@@ -167,9 +176,11 @@ function InitialLayout() {
 };
 
 /**
- * This is the root component of our app.
- * We wrap everything in the `ClerkProvider` so that all our components
- * can access the user's authentication state.
+ * Root component for the app.
+ * Wraps navigation in:
+ * – UserProvider (app-level user + role)
+ * - ClerkProvider (auth)
+ * – ThemeProvider (navigation theming)
  */
 export default function RootLayout() {
   return (

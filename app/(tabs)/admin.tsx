@@ -1,3 +1,9 @@
+/**
+ * CUFF Admin dashboard screen.
+ * – Shows lightweight analytics about past events
+ * – Lets admins create new leftover food posts with time window + photo
+ */
+
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -47,6 +53,7 @@ type AdminAnalytics = {
 };
 
 export default function AdminPost() {
+  // Identity + role: Clerk user for display, app user for admin gating
   const { user: clerkUser } = useClerkUser();
   const { isAdmin } = useAppUser();
   const navigation = useNavigation();
@@ -58,6 +65,7 @@ export default function AdminPost() {
     clerkUser?.primaryEmailAddress?.emailAddress
   );
 
+  // Configure the header when this screen mounts
   useEffect(() => {
     navigation.setOptions({
       title: "Admin Dashboard",
@@ -65,20 +73,23 @@ export default function AdminPost() {
     });
   }, [navigation]);
   
+  // Form fields for new event
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [dietarySpecification, setDietarySpecification] = useState("");
 
-  // Dates are Date objects instead of strings
+  // Availability window as Date objects (converted to string for API)
   const [availableFrom, setAvailableFrom] = useState<Date | null>(null);
   const [availableUntil, setAvailableUntil] = useState<Date | null>(null);
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showUntilPicker, setShowUntilPicker] = useState(false);
 
+  // Optional image attached to the event
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Basic analytics snapshot built from existing events
   const [analytics, setAnalytics] = useState<AdminAnalytics>({
     totalEvents: 0,
     activeEvents: 0,
@@ -94,7 +105,7 @@ export default function AdminPost() {
     timeBuckets: [],
   });
 
-  // Load analytics once
+  // Load analytics once on mount
   useEffect(() => {
     const loadAnalytics = async () => {
       try {
@@ -124,7 +135,7 @@ export default function AdminPost() {
           .sort((a, b) => b.count - a.count)
           .slice(0, 3);
 
-        // Dietary counts
+        // Dietary counts inferred from description + dietarySpecification
         let vegan = 0;
         let vegetarian = 0;
         let glutenFree = 0;
@@ -144,7 +155,7 @@ export default function AdminPost() {
           }
         });
 
-        // Time buckets based on availableFrom hour
+        // Group events by time of day they were posted (availableFrom)
         const buckets: { label: string; count: number }[] = [
           { label: "Morning (6–11am)", count: 0 },
           { label: "Midday (11am–2pm)", count: 0 },
@@ -184,6 +195,7 @@ export default function AdminPost() {
     loadAnalytics();
   }, []);
 
+  // Format a Date for human-readable UI labels
   const formatDateTime = (date: Date | null) => {
     if (!date) return "";
     return date.toLocaleString([], {
@@ -192,6 +204,10 @@ export default function AdminPost() {
     });
   };
 
+  /**
+   * Convert a Date to a local ISO string (no timezone suffix)
+   * to match what the backend expects.
+   */
   const toLocalIsoString = (date: Date): string => {
     const pad = (n: number) => n.toString().padStart(2, "0");
 
@@ -205,6 +221,7 @@ export default function AdminPost() {
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   };
 
+  // Image selection from gallery
   const pickFromLibrary = async () => {
     const { status } =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -227,6 +244,7 @@ export default function AdminPost() {
     }
   };
 
+  // Take a photo with the camera
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
@@ -247,6 +265,7 @@ export default function AdminPost() {
     }
   };
 
+  // Validate form + submit new event to backend
   const handleSubmit = async () => {
     if (!title.trim()) {
     Alert.alert("Missing title", "Please enter a title for the post.");
@@ -265,6 +284,7 @@ export default function AdminPost() {
       const availableFromIso = toLocalIsoString(availableFrom);
       const availableUntilIso = toLocalIsoString(availableUntil);
 
+      // TODO: replace hard-coded userId once backend is wired to Creighton MFA
       const ADMIN_USER_ID = 1;
 
       await createEvent({
@@ -297,6 +317,7 @@ export default function AdminPost() {
     }
   };
 
+  // Non-admins are blocked with a simple message instead of the dashboard
   if (!isAdmin) {
     return (
       <View style={styles.lockedContainer}>

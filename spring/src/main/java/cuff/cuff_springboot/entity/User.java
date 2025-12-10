@@ -1,43 +1,44 @@
 package cuff.cuff_springboot.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "User")
+@Table(name = "user")
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "firstName", nullable = false)
+    @Column(name = "firstName")
     private String firstName;
 
-    @Column(name = "lastName", nullable = false)
+    @Column(name = "lastName")
     private String lastName;
 
-    @Column(nullable = false, unique = true) 
     private String email;
-
-    @Column(nullable = false)
     private String password;
 
-    @Column(name = "notification_type", nullable = false)
+    @Column(name = "notification_type")
     private String notificationType;
 
     @Column(name = "dietary_preferences")
     private String dietaryPreferences;
 
     @Column(name = "is_admin")
-    private Boolean isAdmin = false; //default set to false
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Boolean isAdmin;
 
     protected User() {}
 
-    public User(String firstName, String lastName, String email, String password,
-                String notificationType, String dietaryPreferences, Boolean isAdmin) {
+    // Constructor WITHOUT id (id is auto-generated)
+    public User(String firstName,
+                String lastName,
+                String email,
+                String password,
+                String notificationType,
+                String dietaryPreferences,
+                Boolean isAdmin) {
+
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -47,13 +48,20 @@ public class User {
         this.isAdmin = isAdmin;
     }
 
+    // GETTERS & SETTERS
+
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getFirstName() {
         return firstName;
     }
+
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
@@ -61,6 +69,7 @@ public class User {
     public String getLastName() {
         return lastName;
     }
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
@@ -68,6 +77,7 @@ public class User {
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -75,6 +85,7 @@ public class User {
     public String getPassword() {
         return password;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -82,6 +93,7 @@ public class User {
     public String getNotificationType() {
         return notificationType;
     }
+
     public void setNotificationType(String notificationType) {
         this.notificationType = notificationType;
     }
@@ -89,6 +101,7 @@ public class User {
     public String getDietaryPreferences() {
         return dietaryPreferences;
     }
+
     public void setDietaryPreferences(String dietaryPreferences) {
         this.dietaryPreferences = dietaryPreferences;
     }
@@ -96,15 +109,8 @@ public class User {
     public Boolean getIsAdmin() {
         return isAdmin;
     }
+
     public void setIsAdmin(Boolean isAdmin) {
         this.isAdmin = isAdmin;
     }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
 }

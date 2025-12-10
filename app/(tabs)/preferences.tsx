@@ -40,7 +40,7 @@ export default function PreferencesScreen() {
   });
   const [notificationType, setNotificationType] =
     useState<NotificationType>("Both");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadLocalPrefs = async () => {
@@ -135,14 +135,6 @@ export default function PreferencesScreen() {
   const changeNotificationType = (type: NotificationType) => {
     persist(prefs, type);
   };
-
-  if (loading || userLoading) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading preferences…</Text>
-      </View>
-    );
-  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

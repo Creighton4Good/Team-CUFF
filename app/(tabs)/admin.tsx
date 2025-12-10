@@ -17,6 +17,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { createEvent, fetchEvents } from "@/lib/api";
 import { useUser as useClerkUser } from "@clerk/clerk-expo";
 import { useUser as useAppUser } from "@/hooks/UserContext";
+import { useNavigation } from "expo-router";
 
 type Event = {
   id: number;
@@ -47,19 +48,17 @@ type AdminAnalytics = {
 export default function AdminPost() {
   const { user: clerkUser } = useClerkUser();
   const { isAdmin } = useAppUser();
+  const navigation = useNavigation();
 
-  if (!isAdmin) {
-    return (
-      <View style={styles.lockedContainer}>
-        <Text style={styles.lockedTitle}>Admin access only</Text>
-        <Text style={styles.lockedText}>
-          This screen is only available to CUFF administrators. If you think you
-          should have access, please contact the CUFF team.
-        </Text>
-      </View>
-    );
-  }
+  console.log("[AdminPost] isAdmin =", isAdmin, "email =", clerkUser?.primaryEmailAddress?.emailAddress);
 
+  useEffect(() => {
+    navigation.setOptions({
+      title: "Admin Dashboard",
+      headerTitle: "Admin Dashboard",
+    });
+  }, [navigation]);
+  
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
@@ -291,6 +290,18 @@ export default function AdminPost() {
       setSubmitting(false);
     }
   };
+
+  if (!isAdmin) {
+    return (
+      <View style={styles.lockedContainer}>
+        <Text style={styles.lockedTitle}>Admin access only</Text>
+        <Text style={styles.lockedText}>
+          This screen is only available to CUFF administrators. If you think you
+          should have access, please contact the CUFF team.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView

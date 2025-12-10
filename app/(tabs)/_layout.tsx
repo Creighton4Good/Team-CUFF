@@ -1,57 +1,54 @@
 import React from "react";
 import { Tabs } from "expo-router";
-<<<<<<< HEAD
-import { useUser } from "../../hooks/UserContext";
+import { useUser as useAppUser } from "../../hooks/UserContext";
 import { colors } from "@/constants/theme";
+import { ActivityIndicator, View, Text } from "react-native";
 
 export default function TabsLayout() {
-  const { loading, isAdmin } = useUser();
+  const { isAdmin, loading } = useAppUser();
 
-  console.log("[TabsLayout] loading, isAdmin =", loading, isAdmin);
+  console.log("[TabsLayout] isAdmin =", isAdmin, "loading =", loading);
 
   if (loading) {
-    return null;
+    // While we don't know yet, show a simple loading view
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+        <Text style={{ marginTop: 8 }}>Loading...</Text>
+      </View>
+    );
   }
-=======
 
-export default function TabsLayout() {
-  const { colors } = useTheme();
->>>>>>> c89212a16b09248967b4a219865a45a3472a222d
+  const commonOptions = {
+    headerStyle: { backgroundColor: colors.cuNavy },
+    headerTintColor: colors.white,
+    headerTitleStyle: { fontWeight: "700" },
+    tabBarStyle: { backgroundColor: colors.cuNavy },
+    tabBarActiveTintColor: colors.cuBlue,
+    tabBarInactiveTintColor: colors.cuLightGray,
+  } as const;
 
   return (
-    <Tabs
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.cuNavy },
-        headerTintColor: colors.white,
-        headerTitleStyle: { fontWeight: "700" },
-        tabBarStyle: { backgroundColor: colors.cuNavy },
-        tabBarActiveTintColor: colors.cuBlue,
-        tabBarInactiveTintColor: colors.cuLightGray,
-      }}
-    >
+    <Tabs screenOptions={commonOptions}>
       <Tabs.Screen
         name="index"
-        options={{ 
+        options={{
           title: "Dashboard",
-          tabBarLabel: "Dashboard",
         }}
       />
-      {isAdmin && <Tabs.Screen
-        name="admin"
-        options={{ 
-          title: "Post Event",
-<<<<<<< HEAD
-          tabBarLabel: "Post Event",
-          href: isAdmin ? undefined : null, 
-        }}
-      />}
       <Tabs.Screen
         name="preferences"
         options={{
-        title: "Preferences",
-=======
-          tabBarLabel: "Post Event", 
->>>>>>> c89212a16b09248967b4a219865a45a3472a222d
+          title: "Preferences",
+        }}
+      />
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: "Admin Dashboard",
+          // 👇 this is the key line:
+          // when isAdmin is false, the admin tab is hidden from the tab bar
+          href: isAdmin ? "/admin" : null,
         }}
       />
     </Tabs>

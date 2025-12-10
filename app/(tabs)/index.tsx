@@ -258,7 +258,16 @@ export default function HomeScreen() {
             </View>
           );
         }}
-        ListEmptyComponent={<Text>No events yet.</Text>}
+        ListEmptyComponent={
+          totalEvents === 0 ? (
+            <Text>No events have been posted yet.</Text>
+          ) : (
+            <Text>
+              No events match your current filters. Try adjusting them in the
+              Preferences tab.
+            </Text>
+          )
+        }
       />
 
       <View style={styles.separator} />

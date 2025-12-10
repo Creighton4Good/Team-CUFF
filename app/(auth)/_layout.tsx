@@ -1,14 +1,14 @@
-import { useTheme } from "@react-navigation/native";
+import { colors } from "@/constants/theme";
 import { Stack } from "expo-router";
 
 export default function AuthLayout() {
-  const { colors } = useTheme();
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: colors.card },
-        headerTintColor: "#fff",
-        contentStyle: { backgroundColor: colors.background },
+        headerStyle: { backgroundColor: colors.cuNavy },
+        headerTintColor: colors.white,
+        headerTitleStyle: { fontWeight: "700" },
+        contentStyle: { backgroundColor: colors.white },
       }}
     >
       <Stack.Screen name="sign-in" options={{ title: "Sign In" }} />

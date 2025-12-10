@@ -41,10 +41,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const CURRENT_USER_ID = 1; // row with is_admin
 
-        const data = await fetchUserById(CURRENT_USER_ID);
-        console.log("[UserContext] loaded user", data);
+        const raw = await fetchUserById(CURRENT_USER_ID);
+        console.log("[UserContext] raw user", raw);
+
+        const normalized: User = {
+            id: raw.id,
+            email: raw.email,
+            firstName: raw.firstName,
+            lastName: raw.lastName,
+            notificationType: raw.notificationType,
+            dietaryPreferences: raw.dietaryPreferences,
+        // accept multiple possible field names from backend
+            isAdmin:
+                raw.isAdmin ??
+                (raw as any).is_admin ??
+                (raw as any).admin ??
+                false,
+        };
         
-        setUser(data);
+        console.log("[UserContext] normalized user", normalized);
+        setUser(normalized);
       } catch (err) {
         console.error("Failed to fetch user profile", err);
       } finally {
@@ -57,6 +73,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Derive admin state directly from user object
   const isAdmin = !!user?.isAdmin;
+  console.log("[UserContext] computed isAdmin =", isAdmin);
 
   return (
     <UserContext.Provider value={{ user, loading, isAdmin, setUser }}>

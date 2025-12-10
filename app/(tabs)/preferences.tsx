@@ -10,6 +10,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUser } from "../../hooks/UserContext";
 import { updateUserPreferences } from "../../lib/api";
+import { useRouter } from "expo-router";
 
 const PREFS_KEY = "cuff_preferences";
 
@@ -27,7 +28,8 @@ type NotificationType = (typeof NOTIFICATION_OPTIONS)[number];
 type StoredPrefs = Preferences & { notificationType: NotificationType };
 
 export default function PreferencesScreen() {
-  const { user, loading: userLoading, setUser } = useUser();
+  const router = useRouter();
+    const { user, loading: userLoading, setUser } = useUser();
 
   const [prefs, setPrefs] = useState<Preferences>({
     highlightVeg: false,
@@ -38,7 +40,7 @@ export default function PreferencesScreen() {
   });
   const [notificationType, setNotificationType] =
     useState<NotificationType>("Both");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadLocalPrefs = async () => {
@@ -134,14 +136,6 @@ export default function PreferencesScreen() {
     persist(prefs, type);
   };
 
-  if (loading || userLoading) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading preferences…</Text>
-      </View>
-    );
-  }
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Food & Notification Preferences</Text>
@@ -213,6 +207,14 @@ export default function PreferencesScreen() {
         value={prefs.avoidDairy}
         onValueChange={(v) => update({ avoidDairy: v })}
       />
+
+        <Text style={styles.sectionHeader}>Account</Text>
+        <Pressable
+            style={styles.changePasswordButton}
+            onPress={() => router.push("/change-password")}
+        >
+        <Text style={styles.changePasswordText}>Change Password</Text>
+        </Pressable>
     </ScrollView>
   );
 }
@@ -277,5 +279,19 @@ const styles = StyleSheet.create({
   },
   chipTextSelected: {
     color: "#fff",
+  },
+  changePasswordButton: {
+    marginTop: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#005CA9",
+    alignSelf: "flex-start",
+  },
+  changePasswordText: {
+    fontSize: 14,
+    color: "#005CA9",
+    fontWeight: "600",
   },
 });

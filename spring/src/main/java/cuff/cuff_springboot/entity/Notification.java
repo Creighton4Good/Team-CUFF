@@ -18,7 +18,7 @@ public class Notification {
     private int userId;
 
     @Column(name = "notification_type", nullable = false)
-    private String notificationType;   
+    private String notificationType = "both";   //default
 
     @Column(name = "message_content", columnDefinition = "TEXT")
     private String messageContent;

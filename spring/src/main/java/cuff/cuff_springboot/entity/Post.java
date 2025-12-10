@@ -1,4 +1,4 @@
-package main.java.cuff.cuff_springboot.entity;
+package cuff.cuff_springboot.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

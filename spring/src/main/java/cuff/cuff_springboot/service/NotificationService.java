@@ -10,5 +10,6 @@ public interface NotificationService {
     List<Notification> getAllNotifications();
     Notification sendNotification(Integer userId, String message);
     List<Notification> getNotificationsByUser(Integer userId);
+    void notifyAllUsersOfNewPost(Integer postId, String message);
 
 }

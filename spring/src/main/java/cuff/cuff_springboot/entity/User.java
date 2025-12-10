@@ -28,9 +28,11 @@ public class User {
     @Column(name = "is_admin")
     private Boolean isAdmin;
 
+    @Column(name = "notifications_enabled")
+    private boolean notificationsEnabled;
+
     protected User() {}
 
-    // Constructor WITHOUT id (id is auto-generated)
     public User(String firstName,
                 String lastName,
                 String email,
@@ -47,8 +49,6 @@ public class User {
         this.dietaryPreferences = dietaryPreferences;
         this.isAdmin = isAdmin;
     }
-
-    // GETTERS & SETTERS
 
     public int getId() {
         return id;

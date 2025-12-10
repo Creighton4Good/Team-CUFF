@@ -1,7 +1,20 @@
 import { useSignIn } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
+import { 
+  ActivityIndicator,
+  Button, 
+  Text, 
+  TextInput, 
+  View,
+  Pressable,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { colors } from "@/constants/theme";
+
+type Stage = "request" | "reset";
 
 export default function ForgotPassword() {
   const { isLoaded, signIn, setActive } = useSignIn();
@@ -24,12 +37,17 @@ export default function ForgotPassword() {
 
       // 2) Find the reset factor and extract the emailAddressId
       const emailFactor = (signIn.supportedFirstFactors ?? []).find(
-        (f: any) => f.strategy === "reset_password_email_code" && f.emailAddressId
-      ) as { strategy: "reset_password_email_code"; emailAddressId: string } | undefined;
+        (f: any) => 
+          f.strategy === "reset_password_email_code" && f.emailAddressId
+      ) as 
+        | { 
+            strategy: "reset_password_email_code"; 
+            emailAddressId: string; 
+          } | undefined;
 
       if (!emailFactor) {
         throw new Error(
-          "Email code password reset is not enabled for this account. Enable it in Clerk or use the supported strategy."
+          "Password reset by email code is not enabled for this account."
         );
       }
 
@@ -41,7 +59,9 @@ export default function ForgotPassword() {
 
       setStage("reset");
     } catch (e: any) {
-      setError(e?.errors?.[0]?.longMessage ?? e?.message ?? "Unable to send reset email.");
+      setError(e?.errors?.[0]?.longMessage ?? 
+        e?.message ?? "Unable to send reset email."
+      );
     } finally {
       setBusy(false);
     }
@@ -66,60 +86,212 @@ export default function ForgotPassword() {
       }
       setError("Reset not complete. Double-check the code and try again.");
     } catch (e: any) {
-      setError(e?.errors?.[0]?.longMessage ?? e?.message ?? "Could not reset password.");
+      setError(
+        e?.errors?.[0]?.longMessage ?? e?.message ?? "Could not reset password."
+      );
     } finally {
       setBusy(false);
     }
   };
 
-  if (!isLoaded) return <View style={{ padding: 20 }}><Text>Loading…</Text></View>;
+  if (!isLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.cuBlue} />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  const onPrimaryPress = stage === "request" ? requestReset : reset;
+  const primaryDisabled =
+    busy ||
+    (stage === "request" ? !email.trim() : !code.trim() || !newPassword.trim());
 
   return (
-    <View style={{ padding: 20, gap: 12 }}>
-      <Text style={{ fontSize: 22, fontWeight: "700" }}>
-        {stage === "request" ? "Reset your password" : "Enter code & new password"}
-      </Text>
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={styles.card}>
+        <Text style={styles.title}>Forgot your password?</Text>
+        <Text style={styles.subtitle}>
+          {stage === "request"
+            ? "Enter the email you use with CUFF and we’ll send a one-time code to reset your password."
+            : "Check your email for the one-time code, then create a new password below."}
+        </Text>
 
-      {stage === "request" ? (
-        <>
-          <TextInput
-            placeholder="Email"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-            style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 6 }}
-            editable={!busy}
-          />
-          <Button title={busy ? "Sending…" : "Send reset email"} onPress={requestReset} disabled={busy || !email} />
-        </>
-      ) : (
-        <>
-          <TextInput
-            placeholder="Email code"
-            value={code}
-            onChangeText={setCode}
-            keyboardType="number-pad"
-            style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 6 }}
-            editable={!busy}
-          />
-          <TextInput
-            placeholder="New password"
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-            style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 6 }}
-            editable={!busy}
-          />
-          <Button
-            title={busy ? "Updating…" : "Update password"}
-            onPress={reset}
-            disabled={busy || !code || !newPassword}
-          />
-        </>
-      )}
+        {stage === "request" ? (
+          <>
+            <Text style={styles.label}>Creighton email</Text>
+            <TextInput
+              placeholder="name@creighton.edu"
+              placeholderTextColor={colors.cuLightGray}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+              style={styles.input}
+              editable={!busy}
+            />
+          </>
+        ) : (
+          <>
+            <Text style={styles.label}>Email code</Text>
+            <TextInput
+              placeholder="6-digit code"
+              placeholderTextColor={colors.cuLightGray}
+              value={code}
+              onChangeText={setCode}
+              keyboardType="number-pad"
+              style={styles.input}
+              editable={!busy}
+            />
 
-      {!!error && <Text style={{ color: "red" }}>{error}</Text>}
-    </View>
+            <Text style={styles.label}>New password</Text>
+            <TextInput
+              placeholder="Create a new password"
+              placeholderTextColor={colors.cuLightGray}
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+              style={styles.input}
+              editable={!busy}
+            />
+          </>
+        )}
+
+        {!!error && <Text style={styles.errorText}>{error}</Text>}
+
+        <Pressable
+          style={[styles.primaryButton, primaryDisabled && styles.buttonDisabled]}
+          onPress={onPrimaryPress}
+          disabled={primaryDisabled}
+        >
+          <Text style={styles.primaryButtonText}>
+            {busy
+              ? stage === "request"
+                ? "Sending…"
+                : "Updating…"
+              : stage === "request"
+              ? "Send reset email"
+              : "Update password"}
+          </Text>
+        </Pressable>
+
+        {stage === "reset" && (
+          <Pressable
+            onPress={() => setStage("request")}
+            disabled={busy}
+            style={styles.secondaryLink}
+          >
+            <Text style={styles.secondaryLinkText}>
+              Didn’t get a code? Try a different email.
+            </Text>
+          </Pressable>
+        )}
+
+        <Pressable
+          onPress={() => router.replace("/(auth)/sign-in")}
+          disabled={busy}
+          style={styles.backToSignIn}
+        >
+          <Text style={styles.backToSignInText}>Back to sign in</Text>
+        </Pressable>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.cuNavy,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: colors.cuNavy,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: "#555",
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.cuNavy,
+    marginBottom: 4,
+    marginTop: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.cuLightGray,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: "#000",
+  },
+  primaryButton: {
+    marginTop: 20,
+    backgroundColor: colors.cuBlue,
+    paddingVertical: 12,
+    borderRadius: 999,
+    alignItems: "center",
+  },
+  primaryButtonText: {
+    color: colors.white,
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  secondaryLink: {
+    marginTop: 10,
+    alignItems: "center",
+  },
+  secondaryLinkText: {
+    fontSize: 13,
+    color: colors.cuNavy,
+    textDecorationLine: "underline",
+  },
+  backToSignIn: {
+    marginTop: 18,
+    alignItems: "center",
+  },
+  backToSignInText: {
+    fontSize: 13,
+    color: "#555",
+  },
+  errorText: {
+    marginTop: 10,
+    color: "#B00020",
+    fontSize: 13,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: colors.cuNavy,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 8,
+    color: colors.white,
+  },
+});

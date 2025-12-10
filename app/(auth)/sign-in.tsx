@@ -2,13 +2,16 @@ import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Button,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { colors } from "@/constants/theme";
 
 export default function SignInScreen() {
   // Clerk's hook for handling the sign-in process
@@ -47,99 +50,200 @@ export default function SignInScreen() {
     } catch (err: any) {
       // This is our error handling. We can show a friendly message.
       const errorMessage =
-        err.errors?.[0]?.longMessage || "An error occurred. Please try again.";
+        err.errors?.[0]?.longMessage || 
+        "An error occurred. Please try again.";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (!isLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.cuBlue} />
+        <Text style={styles.loadingText}>Loading…</Text>
+      </View>
+    );
+  }
+
+  const signInDisabled =
+    isLoading || !emailAddress.trim() || !password.trim();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sign In</Text>
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={styles.card}>
+        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.subtitle}>
+          Sign in with your Creighton email to see leftover food events and
+          manage your CUFF preferences.
+        </Text>
 
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
+        <Text style={styles.label}>Creighton email</Text>
+        <TextInput
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={emailAddress}
+          placeholder="name@creighton.edu"
+          placeholderTextColor={colors.cuLightGray}
+          onChangeText={setEmailAddress}
+          style={styles.input}
+          editable={!isLoading}
+        />
+
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          value={password}
+          placeholder="Enter your password"
+          placeholderTextColor={colors.cuLightGray}
+          secureTextEntry
+          onChangeText={setPassword}
+          style={styles.input}
+          editable={!isLoading}
+        />
+
+        <Pressable
+          style={[styles.primaryButton, signInDisabled && styles.buttonDisabled]}
+          onPress={onSignInPress}
+          disabled={signInDisabled}
+        >
+          <Text style={styles.primaryButtonText}>
+            {isLoading ? "Signing in…" : "Sign in"}
+          </Text>
+        </Pressable>
+
+        <View style={styles.linksRow}>
+          <Link href="/(auth)/forgot-password" asChild>
+            <Pressable disabled={isLoading}>
+              <Text style={styles.linkText}>Forgot password?</Text>
+            </Pressable>
+          </Link>
         </View>
-      ) : null}
 
-      <TextInput
-        autoCapitalize="none"
-        value={emailAddress}
-        placeholder="Email..."
-        onChangeText={setEmailAddress}
-        style={styles.input}
-        editable={!isLoading}
-      />
-      <TextInput
-        value={password}
-        placeholder="Password..."
-        secureTextEntry
-        onChangeText={setPassword}
-        style={styles.input}
-        editable={!isLoading}
-      />
-      <Button
-        title={isLoading ? "Signing In..." : "Sign In"}
-        onPress={onSignInPress}
-        disabled={isLoading}
-      />
-      <Link href="/(auth)/forgot-password" asChild>
-        <Pressable style={styles.link} disabled={isLoading}>
-          <Text style={styles.linkText}>Forgot Password?</Text>
-        </Pressable>
-      </Link>
-      <Link href="/sign-up" asChild>
-        <Pressable style={styles.link} disabled={isLoading}>
-          <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
-        </Pressable>
-      </Link>
-    </View>
+        <View style={styles.footerRow}>
+          <Text style={styles.footerText}>New to CUFF? </Text>
+          <Link href="/(auth)/sign-up" asChild>
+            <Pressable disabled={isLoading}>
+              <Text style={styles.footerLinkText}>Create an account</Text>
+            </Pressable>
+          </Link>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
-// Add some basic styling to make it look nice
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
+    backgroundColor: colors.cuNavy,
     justifyContent: "center",
-    padding: 20,
+    paddingHorizontal: 20,
+  },
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 22,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 4,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 30,
-    color: "#00235D",
+    fontSize: 24,
+    fontWeight: "700",
+    color: colors.cuNavy,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: "#555",
+    marginBottom: 18,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.cuNavy,
+    marginBottom: 4,
+    marginTop: 10,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#005CA9",
-    padding: 12,
-    marginBottom: 15,
-    borderRadius: 5,
-    fontSize: 16,
-  },
-  errorContainer: {
-    backgroundColor: "#005CA9",
-    borderColor: "#00235D",
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 12,
-    marginBottom: 15,
-  },
-  errorText: {
-    color: "#6CADDE",
+    borderColor: colors.cuLightGray,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 14,
-    textAlign: "center",
+    color: "#000",
   },
-  link: {
-    marginTop: 15,
+  primaryButton: {
+    marginTop: 18,
+    backgroundColor: colors.cuBlue,
+    paddingVertical: 12,
+    borderRadius: 999,
     alignItems: "center",
   },
+  primaryButtonText: {
+    color: colors.white,
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  linksRow: {
+    marginTop: 14,
+    alignItems: "flex-end",
+  },
   linkText: {
-    color: "#005CA9",
-    fontSize: 16,
+    fontSize: 13,
+    color: colors.cuNavy,
+    textDecorationLine: "underline",
+  },
+  footerRow: {
+    marginTop: 18,
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  footerText: {
+    fontSize: 13,
+    color: "#444",
+  },
+  footerLinkText: {
+    fontSize: 13,
+    color: colors.cuBlue,
+    fontWeight: "600",
+  },
+  errorContainer: {
+    backgroundColor: "#FDECEC",
+    borderColor: "#E29595",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+  },
+  errorText: {
+    color: "#B00020",
+    fontSize: 13,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: colors.cuNavy,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 8,
+    color: colors.white,
   },
 });

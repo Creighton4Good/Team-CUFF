@@ -8,6 +8,8 @@ import {
     Pressable 
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUser } from "../../hooks/UserContext";
+import { updateUserPreferences } from "../../lib/api";
 
 const PREFS_KEY = "cuff_preferences";
 
@@ -25,6 +27,8 @@ type NotificationType = (typeof NOTIFICATION_OPTIONS)[number];
 type StoredPrefs = Preferences & { notificationType: NotificationType };
 
 export default function PreferencesScreen() {
+  const { user, loading: userLoading, setUser } = useUser();
+
   const [prefs, setPrefs] = useState<Preferences>({
     highlightVeg: false,
     highlightVegan: false,
@@ -37,7 +41,7 @@ export default function PreferencesScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadPrefs = async () => {
+    const loadLocalPrefs = async () => {
       try {
         const json = await AsyncStorage.getItem(PREFS_KEY);
         if (json) {
@@ -49,30 +53,75 @@ export default function PreferencesScreen() {
             avoidGluten: !!stored.avoidGluten,
             avoidDairy: !!stored.avoidDairy,
           });
-          if (
-            stored.notificationType &&
-            NOTIFICATION_OPTIONS.includes(stored.notificationType as any)
-          ) {
-            setNotificationType(stored.notificationType as NotificationType);
-          }
         }
       } catch (e) {
-        console.error("Failed to load preferences", e);
+        console.error("Failed to load preferences from AsyncStorage", e);
       } finally {
         setLoading(false);
       }
     };
-    loadPrefs();
+    loadLocalPrefs();
   }, []);
+
+  // 2) Once user is loaded, initialize from server values
+  useEffect(() => {
+    if (userLoading) return;
+    if (!user) return;
+
+    // notificationType from server
+    if (
+      user.notificationType &&
+      NOTIFICATION_OPTIONS.includes(user.notificationType as NotificationType)
+    ) {
+      setNotificationType(user.notificationType as NotificationType);
+    } else {
+      setNotificationType("Both");
+    }
+
+    // dietaryPreferences from server (JSON-encoded toggles)
+    if (user.dietaryPreferences) {
+      try {
+        const parsed = JSON.parse(
+          user.dietaryPreferences
+        ) as Partial<Preferences>;
+        setPrefs((prev) => ({
+          ...prev,
+          highlightVeg: parsed.highlightVeg ?? prev.highlightVeg,
+          highlightVegan: parsed.highlightVegan ?? prev.highlightVegan,
+          avoidNuts: parsed.avoidNuts ?? prev.avoidNuts,
+          avoidGluten: parsed.avoidGluten ?? prev.avoidGluten,
+          avoidDairy: parsed.avoidDairy ?? prev.avoidDairy,
+        }));
+      } catch (e) {
+        console.warn("Could not parse dietaryPreferences from server", e);
+      }
+    }
+  }, [userLoading, user]);
 
   const persist = async (nextPrefs: Preferences, nextType: NotificationType) => {
     setPrefs(nextPrefs);
     setNotificationType(nextType);
+
     try {
       const toStore: StoredPrefs = { ...nextPrefs, notificationType: nextType };
       await AsyncStorage.setItem(PREFS_KEY, JSON.stringify(toStore));
     } catch (e) {
       console.error("Failed to save preferences", e);
+    }
+
+    // Sync to backend if we have a logged-in user
+    if (user) {
+      try {
+        const dietaryPreferences = JSON.stringify(nextPrefs);
+        const updatedUser = await updateUserPreferences(user.id, {
+          notificationType: nextType,
+          dietaryPreferences,
+        });
+        console.log("Synced preferences to backend", updatedUser);
+        setUser(updatedUser);
+      } catch (e) {
+        console.error("Failed to sync preferences to backend", e);
+      }
     }
   };
 
@@ -85,7 +134,7 @@ export default function PreferencesScreen() {
     persist(prefs, type);
   };
 
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <View style={styles.container}>
         <Text>Loading preferences…</Text>
@@ -114,8 +163,7 @@ export default function PreferencesScreen() {
                 selected && styles.chipSelected,
               ]}
             >
-              <Text
-                style={[
+              <Text style={[
                   styles.chipText,
                   selected && styles.chipTextSelected,
                 ]}

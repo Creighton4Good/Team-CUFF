@@ -1,34 +1,23 @@
-import { Platform } from "react-native";
-
-export type Event = {
-  id: number;
-  userId: number;
+export type EventPayload = {
   title: string;
   location: string;
-  description?: string;
+  description: string;
   dietarySpecification?: string;
-  availableFrom: string; // ISO string from backend
-  availableUntil: string; // ISO string from backend
+  availableFrom: string;
+  availableUntil: string;
   imageUrl?: string;
-  status: string;
-  createdAt?: string;
-  updatedAt?: string;
+  userId: number;
 };
 
-// What we send when creating a new event/post
-export type NewEvent = Omit<Event, "id" | "createdAt" | "updatedAt">;
+// Base is just host + port
+const API_BASE_URL = "http://10.98.17.177:8080";
 
-const BASE_URL = "http://192.168.1.223:8080";
-/*
-Platform.OS === "android"
-    ? "http://10.0.2.2:8080" // Android emulator
-    : "http://localhost:8080"; // iOS simulator
-*/
+// GET /api/posts
+export async function fetchEvents() {
+  const url = `${API_BASE_URL}/api/posts`;
+  console.log("fetchEvents ->", url);
 
-const POSTS_URL = `${BASE_URL}/api/posts`;
-
-export async function fetchEvents(): Promise<Event[]> {
-  const res = await fetch(POSTS_URL);
+  const res = await fetch(url);
   if (!res.ok) {
     const text = await res.text();
     console.error("Failed to fetch events", res.status, text);
@@ -37,13 +26,15 @@ export async function fetchEvents(): Promise<Event[]> {
   return res.json();
 }
 
-export async function createEvent(event: NewEvent): Promise<Event> {
-  const res = await fetch(POSTS_URL, {
+// POST /api/posts
+export async function createEvent(payload: EventPayload) {
+  const url = `${API_BASE_URL}/api/posts`;
+  console.log("createEvent ->", url, payload);
+
+  const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(event),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
@@ -53,4 +44,60 @@ export async function createEvent(event: NewEvent): Promise<Event> {
   }
 
   return res.json();
+}
+
+// DELETE /api/posts/{id}
+export async function deleteEvent(id: number): Promise<void> {
+    const url = `${API_BASE_URL}/api/posts/${id}`;
+    console.log("deleteEvent ->", url);
+
+    const res = await fetch(url, {
+        method: "DELETE",
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        console.error("Failed to delete event", res.status, text);
+        throw new Error("Failed to delete event");
+    }
+}
+
+export async function fetchUserById(id: number) {
+  const res = await fetch(`${API_BASE_URL}/api/users/${id}`);
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Failed to fetch user", res.status, text);
+    throw new Error("Failed to fetch user");
+  }
+
+  return res.json();
+}
+
+export type UpdatePreferencesPayload = {
+  notificationType: string;
+  dietaryPreferences: string;
+};
+
+// PUT /api/users/preferences/{userId}
+export async function updateUserPreferences(
+  userId: number,
+  payload: UpdatePreferencesPayload
+) {
+  const url = `${API_BASE_URL}/api/users/preferences/${userId}`;
+  console.log("updateUserPreferences ->", url, payload);
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Failed to update preferences", res.status, text);
+    throw new Error("Failed to update preferences");
+  }
+
+  return res.json(); // returns updated User
 }

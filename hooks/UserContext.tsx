@@ -20,12 +20,14 @@ type UserContextType = {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 };
 
 const UserContext = createContext<UserContextType>({
   user: null,
   loading: true,
   isAdmin: false,
+  setUser: () => {},
 });
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -57,7 +59,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const isAdmin = !!user?.isAdmin;
 
   return (
-    <UserContext.Provider value={{ user, loading, isAdmin }}>
+    <UserContext.Provider value={{ user, loading, isAdmin, setUser }}>
       {children}
     </UserContext.Provider>
   );

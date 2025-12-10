@@ -9,5 +9,6 @@ public interface NotificationService {
     Notification getNotificationById(Integer id);
     List<Notification> getAllNotifications();
     Notification sendNotification(Integer userId, String message);
-;
+    List<Notification> getNotificationsByUser(Integer userId);
+
 }

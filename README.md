@@ -54,19 +54,28 @@ This repository contains the full prototype built with **React Native (Expo)** a
 ### **Folder Structure**
 
 app/
-├── (auth)/
-├── (tabs)/
-├── _layout.tsx
-└── modal/
+  (auth)/
+    _layout.tsx
+    forgot-password.tsx
+    sign-in.tsx
+    sign-up.tsx
+  (tabs)/
+    _layout.tsx
+    admin.tsx
+    index.tsx
+    preferences.tsx
+  _layout.tsx
+  change-password.tsx
+  modal.tsx
 
 hooks/
-└── UserContext.tsx
+  UserContext.tsx
 
 lib/
-└── api.ts
+  api.ts
 
 constants/
-└── theme.ts
+  theme.ts
 
 ### **Core Frontend Features**
 - File-based routing with protected routes  

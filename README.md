@@ -229,6 +229,7 @@ Full ACM-formatted references for external libraries, documentation, and data so
 
 ## License
 
-Developed as part of **CSC 318 – Mobile App Development** at Creighton University.  
-This project is intended for educational and non-commercial use.
+This project is licensed under the MIT License.
+
+Copyright (c) 2025 Team CUFF
 

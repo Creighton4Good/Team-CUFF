@@ -1,4 +1,4 @@
-# CUFF – Creighton University Food Finder  
+# CUFF – Creighton University Free Food  
 *A React Native + Spring Boot application reducing food waste and improving student access to leftover food on campus.*
 
 ---

@@ -53,6 +53,7 @@ This repository contains the full prototype built with **React Native (Expo)** a
 
 ### **Folder Structure**
 
+```bash
 app/
   (auth)/
     _layout.tsx
@@ -76,6 +77,7 @@ lib/
 
 constants/
   theme.ts
+```
 
 ### **Core Frontend Features**
 - File-based routing with protected routes  

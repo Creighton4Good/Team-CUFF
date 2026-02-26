@@ -74,7 +74,7 @@ Make sure you have installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR-ORG/cuff-app.git
+git clone https://github.com/Creighton4Good/Team-CUFF.git
 cd cuff-app
 ```
 

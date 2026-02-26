@@ -1,52 +1,169 @@
-# Welcome to your Expo app 👋
+# CUFF — Creighton University Food Finder
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Reducing Food Waste. Increasing Access.
 
-## Get started
+CUFF (Creighton University Free Food) is a mobile application designed to reduce campus food waste while improving access to free meals for students, faculty, and staff.
 
-1. Install dependencies
+Campus events often produce excess food that cannot be formally donated due to policy or safety regulations. CUFF provides a real-time platform that notifies users when leftover food is available for pickup.
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## Features
 
-   ```bash
-   npx expo start
-   ```
+- Real-time food availability alerts  
+- Event location & pickup directions  
+- Food type and quantity details  
+- Push notifications for nearby food  
+- Event time & pickup windows  
+- Metrics dashboard for waste reduction tracking *(future feature)*  
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Target Users
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Students seeking free meals  
+- Faculty & staff on campus  
+- Event organizers with leftover food  
+- Sustainability initiatives & campus organizations  
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Tech Stack
+
+### Frontend
+- React Native (Expo)  
+- Expo Router  
+- TypeScript  
+
+### Backend
+- Spring Boot  
+- MySQL  
+- REST API architecture  
+
+### Authentication
+- Clerk Authentication   
+
+---
+
+## How It Works
+
+1. Event organizers post leftover food availability.  
+2. Users receive notifications when food is available nearby.  
+3. Users view event details including:
+   - location  
+   - time window  
+   - food type  
+4. Users pick up the food before it’s gone.  
+
+---
+
+## Running the App Locally
+
+### Prerequisites
+
+Make sure you have installed:
+
+- Node.js 
+- npm or yarn  
+- Expo CLI  
+- Java JDK 17+  
+- MySQL  
+
+---
+
+### 1. Clone the Repository
 
 ```bash
-npm run reset-project
+git clone https://github.com/YOUR-ORG/cuff-app.git
+cd cuff-app
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+### 2. Setup Frontend
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+cd frontend
+npm install
+npx expo start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Then scan the QR code using Expo Go or run on an emulator.
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+### 3. Setup Backend
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-# Team-CUFF
-# Team-CUFF
+```bash
+cd backend
+```
+
+Update `application.properties` with your MySQL credentials:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/cuff
+spring.datasource.username=YOUR_USERNAME
+spring.datasource.password=YOUR_PASSWORD
+```
+
+Run the backend:
+
+```bash
+./mvnw spring-boot:run
+```
+
+---
+
+## Database Setup
+
+Create a MySQL database:
+
+```sql
+CREATE DATABASE cuff;
+```
+
+Tables will auto-generate on startup *(if JPA/Hibernate is configured)*.
+
+---
+
+## Future Improvements
+
+- User ratings & feedback system  
+- Analytics dashboard for sustainability metrics  
+- Admin moderation tools  
+- Food safety & compliance tagging  
+- Integration with campus event systems  
+
+---
+
+## Impact
+
+CUFF promotes sustainability and food equity by:
+
+- reducing food waste  
+- supporting food-insecure students  
+- increasing awareness of resource sharing  
+- strengthening campus community  
+
+---
+
+## Contributing
+
+We welcome contributions!
+
+1. Fork the repository  
+2. Create a new branch  
+3. Commit changes  
+4. Submit a pull request  
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+## Team
+
+Developed by Creighton University students to address food waste and improve access to meals on campus.

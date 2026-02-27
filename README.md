@@ -103,7 +103,7 @@ Then update lib/api.ts:
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 ```
 
-Use your computer's LAN IP (not localhost) for physical devices.
+Use your computer's LAN IP (not localhost) for physical devices. <br>
 Android emulator: http://10.0.2.2:8080 <br>
 iOS simulator: http://localhost:8080
 

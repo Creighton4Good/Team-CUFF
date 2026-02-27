@@ -110,7 +110,7 @@ iOS simulator: http://localhost:8080
 ---
 
 ### 3. Setup Backend
-
+Navigate to the backend folder:
 ```bash
 cd spring
 ```

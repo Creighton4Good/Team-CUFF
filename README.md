@@ -19,12 +19,24 @@ Campus events often produce excess food that cannot be formally donated due to p
 
 ---
 
-## Target Users
+## Repository Structure
 
-- Students seeking free meals  
-- Faculty & staff on campus  
-- Event organizers with leftover food  
-- Sustainability initiatives & campus organizations  
+```code
+Team-CUFF/
+│
+├── app/                # Expo Router screens & navigation
+├── components/         # Reusable UI components
+├── lib/api.ts          # API client used by the mobile app
+├── assets/             # Images & fonts
+├── spring/             # Spring Boot backend
+│   ├── controller/
+│   ├── model/
+│   ├── repository/
+│   └── application.properties
+│
+├── package.json        # Expo app dependencies
+└── README.md
+```
 
 ---
 
@@ -62,12 +74,11 @@ Campus events often produce excess food that cannot be formally donated due to p
 ### Prerequisites
 
 Make sure you have installed:
-
-- Node.js 
+- Node.js (LTS recommended)
 - npm or yarn  
-- Expo CLI  
+- Expo Go (mobile app) or emulator
 - Java JDK 17+  
-- MySQL  
+- MySQL Server
 
 ---
 
@@ -75,44 +86,45 @@ Make sure you have installed:
 
 ```bash
 git clone https://github.com/Creighton4Good/Team-CUFF.git
-cd cuff-app
+cd Team-CUFF
 ```
 
 ---
 
-### 2. Setup Frontend
+### 2. Configure Environment Variables
+The mobile app currently references a hard-coded backend URL.
 
-```bash
-cd frontend
-npm install
-npx expo start
+Create a .env file in the root:
+```code
+EXPO_PUBLIC_API_URL=http://YOUR_LOCAL_IP:8080
+```
+Then update lib/api.ts:
+```typescript
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 ```
 
-Then scan the QR code using Expo Go or run on an emulator.
+Use your computer's LAN IP (not localhost) for physical devices.
+Android emulator: http://10.0.2.2:8080 <br>
+iOS simulator: http://localhost:8080
 
 ---
 
 ### 3. Setup Backend
 
 ```bash
-cd backend
+cd spring
+```
+Open:
+```code
+spring/src/main/resources/application.properties
 ```
 
-Update `application.properties` with your MySQL credentials:
-
+Update credentials:
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/cuff
 spring.datasource.username=YOUR_USERNAME
 spring.datasource.password=YOUR_PASSWORD
 ```
-
-Run the backend:
-
-```bash
-./mvnw spring-boot:run
-```
-
----
 
 ## Database Setup
 
@@ -122,7 +134,48 @@ Create a MySQL database:
 CREATE DATABASE cuff;
 ```
 
-Tables will auto-generate on startup *(if JPA/Hibernate is configured)*.
+## Run backend
+
+Mac/Linux:
+```bash
+./mvnw spring-boot:run
+```
+Windows:
+```bash
+mvnw spring-boot:run
+```
+Backend runs at:
+```code
+http://localhost:8080
+```
+
+---
+
+### Start the Mobile App
+
+From the project root:
+```bash
+npm install
+npx expo start
+```
+Then:
+- Scan QR code with Expo Go **OR**
+- Run on emulator
+
+---
+
+## API Overview
+Base URL:
+```code
+/api/posts
+```
+### Example Endpoints
+
+| Method | Endpoint | Description |
+|--------|---------|------------|
+| GET | `/api/posts` | Retrieve active food posts |
+| POST | `/api/posts` | Create a new post |
+| GET | `/api/posts/user/{id}` | Get posts by user |
 
 ---
 
@@ -161,9 +214,3 @@ We welcome contributions!
 ## License
 
 This project is licensed under the MIT License.
-
----
-
-## Team
-
-Developed by Creighton University students to address food waste and improve access to meals on campus.

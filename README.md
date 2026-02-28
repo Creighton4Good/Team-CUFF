@@ -71,98 +71,137 @@ Team-CUFF/
 
 ## Running the App Locally
 
+Follow these steps to run CUFF on your phone using Expo Go.
+
 ### Prerequisites
 
 Make sure you have installed:
 - Node.js (LTS recommended)
-- npm or yarn  
-- Expo Go (mobile app) or emulator
-- Java JDK 17+  
+- Expo Go app (iOS or Android)
+- Java JDK 17+
 - MySQL Server
+- Maven
 
 ---
 
-### 1. Clone the Repository
+## Important: Same Wi-Fi Network
 
-```bash
-git clone https://github.com/Creighton4Good/Team-CUFF.git
-cd Team-CUFF
-```
+Your **computer and phone must be connected to the same Wi-Fi network** so the mobile app can communicate with the backend.
 
 ---
 
-### 2. Configure Environment Variables
-The mobile app currently references a hard-coded backend URL.
+## Step 1: Find Your Computer’s IP Address
 
-Create a .env file in the root:
+You must use your computer’s **local IP address**, NOT `localhost`.
+
+### macOS
+1. Open **System Settings**
+2. Go to **Network**
+3. Select **Wi-Fi → Details**
+4. Find **IP Address**  
+   Example: `192.168.1.42`
+
+### Windows
+1. Open Command Prompt
+2. Run:
 ```code
-EXPO_PUBLIC_API_URL=http://YOUR_LOCAL_IP:8080
+ipconfig
 ```
-Then update lib/api.ts:
-```typescript
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-```
-
-Use your computer's LAN IP (not localhost) for physical devices. <br>
-Android emulator: http://10.0.2.2:8080 <br>
-iOS simulator: http://localhost:8080
+3. Find **IPv4 Address**
+   Example: `192.168.1.42`
 
 ---
 
-### 3. Setup Backend
-Navigate to the backend folder:
+## Step 2: Update API URL
+
+Open:
+```
+lib/api.ts
+```
+
+Update the base URL:
+
+```ts
+const API_BASE_URL = "http://YOUR_IP_ADDRESS:8080";
+```
+
+Example:
+
+```ts
+const API_BASE_URL = "http://192.168.1.42:8080";
+```
+
+Do **NOT** use `localhost` when running on a physical device.
+
+---
+
+## Step 3: Start the Backend (Spring Boot)
+
+Open a terminal window and navigate to the backend:
+
 ```bash
 cd spring
 ```
-Open:
-```code
-spring/src/main/resources/application.properties
-```
 
-Update credentials:
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/cuff
-spring.datasource.username=YOUR_USERNAME
-spring.datasource.password=YOUR_PASSWORD
-```
+Start the Spring Boot server:
 
-## Database Setup
-
-Create a MySQL database:
-
-```sql
-CREATE DATABASE cuff;
-```
-
-## Run backend
-
-Mac/Linux:
 ```bash
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
-Windows:
-```bash
-mvnw spring-boot:run
-```
+
 Backend runs at:
-```code
+
+```
 http://localhost:8080
 ```
 
 ---
 
-### Start the Mobile App
+## Step 4: Start the Mobile App (Expo)
 
-From the project root:
+Open a **second terminal window** from the project root and run:
+
 ```bash
-npm install
 npx expo start
 ```
-Then:
-- Scan QR code with Expo Go **OR**
-- Run on emulator
+
+This will display a QR code in your terminal/browser.
 
 ---
+
+## Step 5: Run on Your Phone (Expo Go)
+
+1. Open **Expo Go**
+2. Scan the QR code
+3. The CUFF app should load automatically
+
+---
+
+## Test Login (Development Only)
+
+Use the following credentials for testing:
+
+- Email: `emg03814@creighton.edu`
+- Password: `TestPassWord123!!!`
+
+---
+
+## Troubleshooting
+
+### App cannot connect to backend
+- Confirm phone & computer are on the same Wi-Fi
+- Verify the IP address in `lib/api.ts`
+- Ensure the backend is running
+
+### Expo loads but no data appears
+- Restart Expo (`Ctrl + C` then `npx expo start`)
+- Check the backend terminal for incoming requests
+- Re-check the API URL
+
+### Backend won’t start
+- Ensure MySQL is running
+- Verify database credentials in  
+  `spring/src/main/resources/application.properties`
 
 ## API Overview
 Base URL:
